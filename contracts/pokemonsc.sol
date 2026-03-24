@@ -15,4 +15,30 @@ contract PokemonFTCG {
      * Auctions
     
     */
+
+    struct Card {
+        string name;
+    }
+    struct Listing {
+        price;
+        address;
+    }
+    struct Auction {
+        
+    }
+
+    mapping(uint256 =>  Card) public cards;
+
+    // Probably only admin or seller should mint cards
+    function mintCard()
+
+    function  listCard()
+
+    function buyCard()
+
+
+
+
+
+
 }
