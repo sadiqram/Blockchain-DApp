@@ -18,13 +18,18 @@ contract PokemonFTCG {
 
     struct Card {
         string name;
+        uint256 attack;
+        uint256 defense;
+        uint256 hp;
+        uint8 rarity;
+        bool Shiny;
     }
     struct Listing {
         price;
         address;
     }
     struct Auction {
-        
+
     }
 
     mapping(uint256 =>  Card) public cards;
