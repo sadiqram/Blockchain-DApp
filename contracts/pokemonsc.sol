@@ -34,8 +34,14 @@ contract PokemonFTCG {
 
     mapping(uint256 =>  Card) public cards;
 
-    // Probably only admin or seller should mint cards
-    function mintCard()
+    // Probably only admin or owner should mint cards
+    function _mintCard(address to, uint256 cardId) internal{
+        require(to != address(0), "Invalid address/ mint to zero address");
+        require(_ownerOf[cardId] == address(0), "Card already minted");
+        _balanceOf[to] ++;
+        _ownerOf[id] =  to;
+        emit Transfer(address(0), to, id);
+    }
 
     function  listCard()
 
