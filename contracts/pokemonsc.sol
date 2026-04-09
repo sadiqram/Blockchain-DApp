@@ -3,7 +3,11 @@ pragma solidity ^0.8.0;
 
 // import "@openzeppelin/contracts/utils/Strings.sol"; 
 // import "base64-sol/base64.sol"; 
-
+interface IERC20 {
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
 
 contract PokemonFTCG {
 
@@ -18,6 +22,11 @@ contract PokemonFTCG {
      * Auctions
     
     */
+    
+    IERC20 public yodaToken;
+    address public contractOwner;
+    uint256 public _nextTokenId;
+    uint256 public mintPrice;
     
     struct Card {
         string name;
@@ -37,7 +46,7 @@ contract PokemonFTCG {
         uint256 endTime;
         address highestBidder;
         uint256 highestBid;
-        address tokenId;
+        uint256 tokenId ;
         address seller;
         bool active;
         bool ended;
@@ -50,16 +59,27 @@ contract PokemonFTCG {
     mapping(uint256 => Auction) public auctions;
     mapping(string => string) public cardToImage;
     mapping(uint256 => address) internal _ownerOf;
-    mapping(address => uint256[]) private tokenOwnerstoIds;
+    // mapping(address => uint256[]) private tokenOwnerstoIds;
     mapping(address => uint256) internal _balanceOf;
     mapping(uint256 => address) internal _approvals;
     mapping(address => mapping(address => bool)) public isApprovedForAll;
 
-    constructor(){}
+    constructor(
+        address _yodaTokenAddr
+        // uint256 mintPrice
+    ){
+        yodaToken = IERC20(_yodaTokenAddr);
+        contractOwner = msg.sender;
+    }
+
 
     // Modifiers
-    modifier onlyOwner() {
+    modifier onlyTokenOwner(uint256 cardId) {
         require(_ownerOf[cardId] == msg.sender, "Not the owner");
+        _;
+    }
+    modifier cardExists(uint256 cardId) {
+        require(_ownerOf[cardId] != address(0), "Card does not exist");
         _;
     }
 
@@ -86,30 +106,62 @@ contract PokemonFTCG {
         emit Transfer(address(0), to, cardId);
     }
 
-    function  listCard(){}
+    function mintCard(
+    address to,
+    string memory name,
+    uint256 attack,
+    uint256 defense,
+    uint256 hp,
+    uint8 rarity,
+    bool shiny
+    ) public {
+        require(msg.sender == contractOwner, "Not contract owner");
 
-    function buyCard(uint256 cardId) public {
+        uint256 cardId = _nextTokenId++;
+
+        _mintCard(to, cardId);
+
+        cards[cardId] = Card(name, attack, defense, hp, rarity, shiny);
+
+        emit CardMinted(cardId, name, to);
+    }
+
+    function listCard(uint256 cardId, uint256 price) public cardExists(cardId) onlyTokenOwner(cardId) {
+        require(price > 0, "Price must be > 0");
+
+        listings[cardId] = Listing({
+        price: price,
+        seller: msg.sender
+        });
+
+        emit CardListed(cardId, price, msg.sender);
+    }
+
+    function buyCard(uint256 cardId) public cardExists(cardId) {
         require(_ownerOf[cardId] != address(0), "Card not minted");
-        require(_ownerOf[cardId] != msg.sender, "You already own this card");
-        require(listings[cardId].price > 0, "Card not listed for sale");
-        require(listings[cardId].price <= msg.value, "Insufficient funds");
-        address owner = _ownerOf[cardId];
-        uint256 price = listings[cardId].price;
-        delete listings[cardId];
+    
+        Listing memory item = listings[cardId];
+    
+        require(item.price > 0, "Card not listed");
+        require(msg.sender != item.seller, "Cannot buy your own card");
+    
+        // Transfer Yoda tokens
+        bool success = yodaToken.transferFrom(msg.sender, item.seller, item.price);
+        require(success, "Yoda transfer failed");
+    
+        // Transfer ownership
+        address seller = item.seller;
+    
         _ownerOf[cardId] = msg.sender;
-        _balanceOf[owner] --;
-        _balanceOf[msg.sender] ++;
-        tokenOwnerstoIds[msg.sender].push(cardId);
-        emit Transfer(owner, msg.sender, cardId);
-        payable(owner).transfer(price);
-
-
+        _balanceOf[seller]--;
+        _balanceOf[msg.sender]++;
+    
+        delete listings[cardId];
+    
+        emit CardPurchased(cardId, msg.sender, item.price);
+        emit Transfer(seller, msg.sender, cardId);
     }
 
     
-
-
-
-
 
 }
