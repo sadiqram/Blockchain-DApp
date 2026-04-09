@@ -7,6 +7,7 @@ export default function Bid() {
   const [account, setAccount] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showError, setShowError] = useState(false);
+  const [newBids, setNewBids] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
     checkIfWalletIsConnected();
@@ -71,10 +72,23 @@ export default function Bid() {
             <div className="bg-blue-500 p-4 rounded-lg shadow-md flex flex-col items-center justify-center w-64 h-80">
               <h2 className="text-2xl font-bold text-yellow-300 mb-4">Pokemon</h2>
             </div>
-            <p className="text-gray-800 font-bold mt-2">Price: 1 Yoda</p>
+            <p className="text-gray-800 font-bold mt-2">Current Bid: 1 Yoda</p>
+            
+            {/* Enter New Bid Input */}
+            <div className="mt-4">
+              <label className="text-gray-800 font-bold">Enter New Bid</label>
+              <input
+                type="text"
+                value={newBids[i] || ""}
+                onChange={(e) => setNewBids({ ...newBids, [i]: e.target.value })}
+                placeholder="Enter your bid"
+                className="block mt-2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
+              />
+            </div>
+            
             <button 
               onClick={handleBidClick}
-              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors cursor-pointer"
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors cursor-pointer"
             >
               Bid
             </button>
