@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function Buy() {
+export default function Bid() {
   const [account, setAccount] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showError, setShowError] = useState(false);
@@ -28,12 +28,12 @@ export default function Buy() {
     }
   };
 
-  const handleBuyClick = () => {
+  const handleBidClick = () => {
     if (!account) {
       setShowError(true);
     } else {
-      // Handle buy logic here
-      console.log("Buying item...");
+      // Handle bid logic here
+      console.log("Bidding on item...");
     }
   };
 
@@ -51,15 +51,15 @@ export default function Buy() {
         </Link>
       </div>
       
-      {/* Buy Title */}
-      <h1 className="text-5xl font-bold text-blue-600 text-center mb-8">Buy</h1>
+      {/* Bid Title */}
+      <h1 className="text-5xl font-bold text-blue-600 text-center mb-8">Bid</h1>
       
       {/* Error Message */}
       {showError && (
         <div className="flex justify-center mb-8">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg max-w-md text-center">
             <p className="font-bold">Error!</p>
-            <p>You must connect your MetaMask wallet to buy items.</p>
+            <p>You must connect your MetaMask wallet to bid on items.</p>
           </div>
         </div>
       )}
@@ -73,10 +73,10 @@ export default function Buy() {
             </div>
             <p className="text-gray-800 font-bold mt-2">Price: 1 Yoda</p>
             <button 
-              onClick={handleBuyClick}
+              onClick={handleBidClick}
               className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors cursor-pointer"
             >
-              Buy
+              Bid
             </button>
           </div>
         ))}
