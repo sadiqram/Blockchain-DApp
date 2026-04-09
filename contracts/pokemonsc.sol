@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+// import "@openzeppelin/contracts/utils/Strings.sol"; 
+// import "base64-sol/base64.sol"; 
+
 
 contract PokemonFTCG {
 
@@ -25,17 +28,29 @@ contract PokemonFTCG {
         bool Shiny;
     }
     struct Listing {
-        price;
-        address;
+        uint256 price;
+        address seller;
     }
     struct Auction {
-
+        uint256 startingPrice;
+        uint256 currentPrice;
+        uint256 endTime;
+        address highestBidder;
+        uint256 highestBid;
+        address tokenId;
+        address seller;
+        bool active;
+        bool ended;
+        bool claimed;
+        bool refunded;
     }
 
     mapping(uint256 =>  Card) public cards;
+    mapping(uint256 => Listing) public listings;
+    mapping(uint256 => Auction) public auctions;
     mapping(string => string) public cardToImage;
     mapping(uint256 => address) internal _ownerOf;
-    mapping(address => to uint256[]) private tokenOwnerstoIds;
+    mapping(address => uint256[]) private tokenOwnerstoIds;
     mapping(address => uint256) internal _balanceOf;
     mapping(uint256 => address) internal _approvals;
     mapping(address => mapping(address => bool)) public isApprovedForAll;
@@ -44,7 +59,7 @@ contract PokemonFTCG {
 
     // Modifiers
     modifier onlyOwner() {
-        require(msg.sender == contractOwner, "Not the owner");
+        require(_ownerOf[cardId] == msg.sender, "Not the owner");
         _;
     }
 
@@ -53,14 +68,22 @@ contract PokemonFTCG {
     event Approval(address indexed owner, address indexed buyer, uint256 tokenId);
     event ApprovedForAll(address indexed owner, address indexed operator, bool approved);
 
+    event CardMinted(uint256 tokenId, string name, address owner);
+    event CardListed(uint256 tokenId, uint256 price, address seller);
+    event CardPurchased(uint256 tokenId, address buyer, uint256 price);
+
+    event AuctionStarted(uint256 tokenId, uint256 startingBid, uint256 endTime);
+    event NewBid(uint256 tokenId, address bidder, uint256 amount);
+    event AuctionEnded(uint256 tokenId, address winner, uint256 amount);
+
 
     // Probably only admin or owner should mint cards
     function _mintCard(address to, uint256 cardId) internal{
         require(to != address(0), "Invalid address/ mint to zero address");
         require(_ownerOf[cardId] == address(0), "Card already minted");
         _balanceOf[to] ++;
-        _ownerOf[id] =  to;
-        emit Transfer(address(0), to, id);
+        _ownerOf[cardId] =  to;
+        emit Transfer(address(0), to, cardId);
     }
 
     function  listCard(){}
