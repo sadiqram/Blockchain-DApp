@@ -226,7 +226,27 @@ contract PokemonFTCG {
     
         emit AuctionEnded(tokenId, auction.highestBidder, auction.highestBid);
     }
-    claimNFT()
+    function claimNFT(uint256 tokenId) public {
+        Auction storage auction = auctions[tokenId];
+    
+        require(auction.ended, "Auction not ended");
+        require(msg.sender == auction.highestBidder, "Not winner");
+        require(!auction.claimed, "Already claimed");
+    
+        address seller = auction.seller;
+    
+        // Transfer NFT
+        _ownerOf[tokenId] = msg.sender;
+        _balanceOf[seller]--;
+        _balanceOf[msg.sender]++;
+    
+        // Pay seller
+        yodaToken.transfer(seller, auction.highestBid);
+    
+        auction.claimed = true;
+    
+        emit Transfer(seller, msg.sender, tokenId);
+    }
     refundBids()
 
 
