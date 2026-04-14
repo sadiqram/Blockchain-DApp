@@ -192,7 +192,29 @@ contract PokemonFTCG {
     
         emit AuctionStarted(tokenId, startingPrice, block.timestamp + duration);
     }
-    placeBid()
+    function placeBid(uint256 tokenId, uint256 amount) public {
+        Auction storage auction = auctions[tokenId];
+    
+        require(auction.active, "Auction not active");
+        require(block.timestamp < auction.endTime, "Auction ended");
+        require(amount > auction.currentPrice, "Bid too low");
+    
+        // Transfer tokens from bidder to contract
+        bool success = yodaToken.transferFrom(msg.sender, address(this), amount);
+        require(success, "Transfer failed");
+    
+        // Refund previous highest bidder
+        if (auction.highestBidder != address(0)) {
+            yodaToken.transfer(auction.highestBidder, auction.highestBid);
+        }
+    
+        // Update auction
+        auction.highestBidder = msg.sender;
+        auction.highestBid = amount;
+        auction.currentPrice = amount;
+    
+        emit NewBid(tokenId, msg.sender, amount);
+    }
     endAuction()
     claimNFT()
     refundBids()
