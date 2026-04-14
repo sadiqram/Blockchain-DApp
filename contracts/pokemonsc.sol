@@ -164,6 +164,10 @@ contract PokemonFTCG {
     function ownerOf(uint256 tokenId) public view returns (address) {
         return _ownerOf[tokenId];
     }
+    function cancelListing(uint256 tokenId) public {
+        require(msg.sender == listings[tokenId].seller);
+        delete listings[tokenId];
+    }
 
 
 }
