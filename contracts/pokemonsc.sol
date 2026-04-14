@@ -215,7 +215,17 @@ contract PokemonFTCG {
     
         emit NewBid(tokenId, msg.sender, amount);
     }
-    endAuction()
+    function endAuction(uint256 tokenId) public {
+        Auction storage auction = auctions[tokenId];
+    
+        require(auction.active, "Auction not active");
+        require(block.timestamp >= auction.endTime, "Auction not ended yet");
+    
+        auction.active = false;
+        auction.ended = true;
+    
+        emit AuctionEnded(tokenId, auction.highestBidder, auction.highestBid);
+    }
     claimNFT()
     refundBids()
 
