@@ -247,7 +247,14 @@ contract PokemonFTCG {
     
         emit Transfer(seller, msg.sender, tokenId);
     }
-    refundBids()
+    function refundBids(uint256 tokenId) public {
+        Auction storage auction = auctions[tokenId];
+    
+        require(auction.ended, "Auction not ended");
+        require(auction.highestBidder == address(0), "Bids exist");
+    
+        auction.refunded = true;
+    }
 
 
 }
