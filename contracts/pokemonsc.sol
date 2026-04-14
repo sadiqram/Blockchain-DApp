@@ -168,6 +168,34 @@ contract PokemonFTCG {
         require(msg.sender == listings[tokenId].seller);
         delete listings[tokenId];
     }
+    function startAuction(
+        uint256 tokenId,
+        uint256 startingPrice,
+        uint256 duration
+    ) public cardExists(tokenId) onlyTokenOwner(tokenId) {
+    
+        require(!auctions[tokenId].active, "Auction already active");
+    
+        auctions[tokenId] = Auction({
+            startingPrice: startingPrice,
+            currentPrice: startingPrice,
+            endTime: block.timestamp + duration,
+            highestBidder: address(0),
+            highestBid: 0,
+            tokenId: tokenId,
+            seller: msg.sender,
+            active: true,
+            ended: false,
+            claimed: false,
+            refunded: false
+        });
+    
+        emit AuctionStarted(tokenId, startingPrice, block.timestamp + duration);
+    }
+    placeBid()
+    endAuction()
+    claimNFT()
+    refundBids()
 
 
 }
