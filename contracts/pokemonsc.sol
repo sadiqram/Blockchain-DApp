@@ -161,7 +161,9 @@ contract PokemonFTCG {
         emit CardPurchased(cardId, msg.sender, item.price);
         emit Transfer(seller, msg.sender, cardId);
     }
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        return _ownerOf[tokenId];
+    }
 
-    
 
 }
