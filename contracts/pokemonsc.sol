@@ -127,6 +127,7 @@ contract PokemonFTCG {
     }
 
     function listCard(uint256 cardId, uint256 price) public cardExists(cardId) onlyTokenOwner(cardId) {
+        require(!auctions[cardId].active, "Card in auction");
         require(price > 0, "Price must be > 0");
 
         listings[cardId] = Listing({
@@ -139,6 +140,7 @@ contract PokemonFTCG {
 
     function buyCard(uint256 cardId) public cardExists(cardId) {
         require(_ownerOf[cardId] != address(0), "Card not minted");
+        require(!auctions[cardId].active, "Card in auction");
     
         Listing memory item = listings[cardId];
     
@@ -254,6 +256,13 @@ contract PokemonFTCG {
         require(auction.highestBidder == address(0), "Bids exist");
     
         auction.refunded = true;
+    }
+    function getAuctionWinner(uint256 tokenId) public view returns (address, uint256) {
+        Auction memory auction = auctions[tokenId];
+    
+        require(auction.ended, "Auction not ended yet");
+    
+        return (auction.highestBidder, auction.highestBid);
     }
 
 
