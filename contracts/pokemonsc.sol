@@ -171,6 +171,10 @@ contract PokemonFTCG {
         require(msg.sender == listings[tokenId].seller);
         delete listings[tokenId];
     }
+    function getListing(uint256 tokenId) public view returns (uint256 price, address seller) {
+    Listing memory l = listings[tokenId];
+    return (l.price, l.seller);
+}
     function startAuction(
         uint256 tokenId,
         uint256 startingPrice,
