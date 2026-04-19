@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { getContract } from "../contract";
+import { ethers } from "ethers";
+
 
 export default function List() {
   const [account, setAccount] = useState<string | null>(null);
@@ -9,7 +12,7 @@ export default function List() {
   const [showError, setShowError] = useState(false);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-
+ 
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
@@ -30,12 +33,21 @@ export default function List() {
     }
   };
 
-  const handleListClick = () => {
+  const handleListClick = async () => {
     if (!account) {
       setShowError(true);
-    } else {
-      // Handle list logic here
-      console.log("Listing item...", { name, price });
+      return;
+    }
+  
+    try {
+      const contract = await getContract(); 
+  
+      const tx = await contract.listCard(0, 100);
+      await tx.wait();
+  
+      console.log("Listed!");
+    } catch (err) {
+      console.error(err);
     }
   };
 

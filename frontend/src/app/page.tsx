@@ -46,7 +46,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
       {/* Header */}
-      <h1 className="text-5xl font-bold text-blue-600 mb-16">Market Chain</h1>
+      <h1 className="text-5xl font-bold text-blue-600 mb-16">Fantasy Pokemon Trading Cards</h1>
 
       {/* Pokemon Cards */}
       <div className="flex gap-4 mb-8">
