@@ -2,15 +2,53 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { getContract, CONTRACT_ADDRESS } from "../contract";
+import { ethers } from "ethers";
+
+export const YODA_TOKEN_ADDRESS = "0xYOUR_YODA_TOKEN_ADDRESS";
+const ERC20_ABI = [
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function receiveTokens()",
+];
 
 export default function Bid() {
   const [account, setAccount] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [newBids, setNewBids] = useState<{ [key: number]: string }>({});
+  const [auctions, setAuctions] = useState<any[]>([]);
 
   useEffect(() => {
     checkIfWalletIsConnected();
+  }, []);
+
+  useEffect(() => {
+    const fetchAuctions = async () => {
+      try {
+        const contract = await getContract();
+
+        const ids = await contract.getActiveAuctions();
+        const temp = [];
+
+        for (let id of ids) {
+          const auction = await contract.auctions(id);
+
+          temp.push({
+            tokenId: Number(id),
+            currentPrice: auction.currentPrice.toString(),
+            highestBid: auction.highestBid.toString(),
+            highestBidder: auction.highestBidder,
+          });
+        }
+
+        setAuctions(temp);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchAuctions();
   }, []);
 
   const checkIfWalletIsConnected = async () => {
@@ -29,17 +67,58 @@ export default function Bid() {
     }
   };
 
-  const handleBidClick = () => {
+  const handleBidClick = async (cardId: number, bidAmount: string) => {
     if (!account) {
       setShowError(true);
-    } else {
-      // Handle bid logic here
-      console.log("Bidding on item...");
+      return;
+    }
+
+    try {
+      const { ethereum } = window as any;
+
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
+
+      const contract = await getContract();
+
+      const amount = ethers.parseUnits(bidAmount, 18);
+
+      const token = new ethers.Contract(YODA_TOKEN_ADDRESS, ERC20_ABI, signer);
+
+      //  Approve
+      const approveTx = await token.approve(CONTRACT_ADDRESS, amount);
+      await approveTx.wait();
+
+      // Step 2: Bid
+      const tx = await contract.placeBid(cardId, amount);
+      await tx.wait();
+
+      console.log("Bid placed!");
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  const handleGetTokens = async () => {
+    const { ethereum } = window as any;
+
+    const provider = new ethers.BrowserProvider(ethereum);
+    const signer = await provider.getSigner();
+
+    const token = new ethers.Contract(YODA_TOKEN_ADDRESS, ERC20_ABI, signer);
+
+    const tx = await token.receiveTokens();
+    await tx.wait();
+
+    console.log("Tokens received!");
+  };
+
   if (isLoading) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -51,10 +130,10 @@ export default function Bid() {
           </p>
         </Link>
       </div>
-      
+
       {/* Bid Title */}
       <h1 className="text-5xl font-bold text-blue-600 text-center mb-8">Bid</h1>
-      
+
       {/* Error Message */}
       {showError && (
         <div className="flex justify-center mb-8">
@@ -64,34 +143,51 @@ export default function Bid() {
           </div>
         </div>
       )}
-      
+
       {/* Pokemon Cards */}
       <div className="flex justify-center gap-4 py-8">
-        {Array.from({length: 4}, (_, i) => (
+        {auctions.map((auction, i) => (
           <div key={i} className="flex flex-col items-center">
             <div className="bg-blue-500 p-4 rounded-lg shadow-md flex flex-col items-center justify-center w-64 h-80">
-              <h2 className="text-2xl font-bold text-yellow-300 mb-4">Pokemon</h2>
+              <h2 className="text-2xl font-bold text-yellow-300 mb-4">
+                Pokemon
+              </h2>
             </div>
-            <p className="text-gray-800 font-bold mt-2">Current Bid: 1 Yoda</p>
-            
-            {/* Enter New Bid Input */}
+
+            <p className="text-gray-800 font-bold mt-2">
+              Current Bid: {ethers.formatUnits(auction.currentPrice, 18)} Yoda
+            </p>
+
             <div className="mt-4">
               <label className="text-gray-800 font-bold">Enter New Bid</label>
               <input
                 type="text"
-                value={newBids[i] || ""}
-                onChange={(e) => setNewBids({ ...newBids, [i]: e.target.value })}
-                placeholder="Enter your bid"
-                className="block mt-2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-black"
+                value={newBids[auction.tokenId] || ""}
+                onChange={(e) =>
+                  setNewBids({
+                    ...newBids,
+                    [auction.tokenId]: e.target.value,
+                  })
+                }
+                // onChange={(e) => setNewBids({ ...newBids, [i]: e.target.value })}
+                className="block mt-2 px-4 py-2 border rounded-lg text-black"
               />
             </div>
-            
-            <button 
-              onClick={handleBidClick}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors cursor-pointer"
+
+            <button
+              onClick={() => {
+                const bid = newBids[auction.tokenId];
+                if (!bid) {
+                  alert("Enter a bid amount");
+                  return;
+                }
+                handleBidClick(auction.tokenId, bid);
+              }}
+              className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-lg"
             >
               Bid
             </button>
+            <button onClick={handleGetTokens}>Get Free YODA</button>
           </div>
         ))}
       </div>
