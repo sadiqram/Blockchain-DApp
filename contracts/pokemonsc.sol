@@ -63,6 +63,7 @@ contract PokemonFTCG {
     mapping(address => uint256) internal _balanceOf;
     mapping(uint256 => address) internal _approvals;
     mapping(address => mapping(address => bool)) public isApprovedForAll;
+    uint256[] public activeAuctions; // update this later
 
     constructor(
         address _yodaTokenAddr
