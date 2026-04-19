@@ -2,15 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getContract, CONTRACT_ADDRESS } from "../contract";
+import { getContract, CONTRACT_ADDRESS,CONTRACT_ABI, ERC20_ABI } from "../contract";
 import { ethers } from "ethers";
 
 export const YODA_TOKEN_ADDRESS = "0xYOUR_YODA_TOKEN_ADDRESS";
-const ERC20_ABI = [
-  "function approve(address spender, uint256 amount) returns (bool)",
-  "function balanceOf(address owner) view returns (uint256)",
-  "function receiveTokens()",
-];
 
 export default function Bid() {
   const [account, setAccount] = useState<string | null>(null);
@@ -51,6 +46,22 @@ export default function Bid() {
     fetchAuctions();
   }, []);
 
+  // add to all pages too
+  const disconnectWallet = () => {
+    setAccount(null);
+    setAuctions([]);
+  };
+  {
+    account && (
+      <button
+        onClick={disconnectWallet}
+        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"
+      >
+        Disconnect Wallet
+      </button>
+    );
+  }
+
   const checkIfWalletIsConnected = async () => {
     try {
       const { ethereum } = window as any;
@@ -80,6 +91,7 @@ export default function Bid() {
       const signer = await provider.getSigner();
 
       const contract = await getContract();
+      console.log(await contract.getActiveAuctions());
 
       const amount = ethers.parseUnits(bidAmount, 18);
 
@@ -105,7 +117,7 @@ export default function Bid() {
     const provider = new ethers.BrowserProvider(ethereum);
     const signer = await provider.getSigner();
 
-    const token = new ethers.Contract(YODA_TOKEN_ADDRESS, ERC20_ABI, signer);
+    const token = new ethers.Contract(YODA_TOKEN_ADDRESS, CONTRACT_ABI, signer);
 
     const tx = await token.receiveTokens();
     await tx.wait();
@@ -145,6 +157,14 @@ export default function Bid() {
       )}
 
       {/* Pokemon Cards */}
+      {account && (
+        <button
+          onClick={disconnectWallet}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg"
+        >
+          Disconnect
+        </button>
+      )}
       <div className="flex justify-center gap-4 py-8">
         {auctions.map((auction, i) => (
           <div key={i} className="flex flex-col items-center">
