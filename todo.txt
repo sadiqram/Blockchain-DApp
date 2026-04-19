@@ -1,0 +1,4 @@
+Frontend TODO
+1. Add a disconnect/sign out button
+2. Fix bid page not loading after metamask connection
+3. Connect Frontend to Backend
