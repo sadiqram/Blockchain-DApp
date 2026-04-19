@@ -178,6 +178,7 @@ contract PokemonFTCG {
     ) public cardExists(tokenId) onlyTokenOwner(tokenId) {
     
         require(!auctions[tokenId].active, "Auction already active");
+        activeAuctions.push(tokenId);
     
         auctions[tokenId] = Auction({
             startingPrice: startingPrice,
@@ -194,6 +195,9 @@ contract PokemonFTCG {
         });
     
         emit AuctionStarted(tokenId, startingPrice, block.timestamp + duration);
+    }
+    function getActiveAuctions() public view returns (uint256[] memory) {
+        return activeAuctions;
     }
     function placeBid(uint256 tokenId, uint256 amount) public {
         Auction storage auction = auctions[tokenId];
