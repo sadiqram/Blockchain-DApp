@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getContract, CONTRACT_ADDRESS,CONTRACT_ABI, ERC20_ABI } from "../contract";
+import {
+  getContract,
+  CONTRACT_ADDRESS,
+  CONTRACT_ABI,
+  ERC20_ABI,
+} from "../contract";
 import { ethers } from "ethers";
 
 export const YODA_TOKEN_ADDRESS = "0xYOUR_YODA_TOKEN_ADDRESS";
+console.log("Frontend address:", CONTRACT_ADDRESS);
 
 export default function Bid() {
   const [account, setAccount] = useState<string | null>(null);
@@ -23,7 +29,13 @@ export default function Bid() {
       try {
         const contract = await getContract();
 
+        // TEST CONNECTION HERE
+        const owner = await contract.contractOwner();
+        console.log("Contract owner:", owner);
+
         const ids = await contract.getActiveAuctions();
+        console.log("Active auctions:", ids);
+
         const temp = [];
 
         for (let id of ids) {
@@ -39,7 +51,7 @@ export default function Bid() {
 
         setAuctions(temp);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
       }
     };
 
@@ -91,6 +103,8 @@ export default function Bid() {
       const signer = await provider.getSigner();
 
       const contract = await getContract();
+      const owner = await contract.contractOwner();
+      console.log("Contract owner:", owner);
       console.log(await contract.getActiveAuctions());
 
       const amount = ethers.parseUnits(bidAmount, 18);
