@@ -16,6 +16,13 @@ export default function Buy() {
   const { account, isConnected, connectWallet } = useWallet();
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const cardImages: Record<number, string> = {
+    0: "/charizard.jpg",
+    1: "/mewtwo.jpg",
+    2: "/pikachu.jpg",
+    3: "/snorlax.jpg",
+  };
 
   useEffect(() => {
     const loadListings = async () => {
@@ -110,6 +117,12 @@ export default function Buy() {
             key={item.tokenId}
             className="bg-blue-500 p-4 w-64 rounded-lg text-center"
           >
+            <img
+                src={cardImages[item.tokenId]}
+                alt={`Pokemon #${item.tokenId}`}
+                className="w-full h-40 object-cover rounded-lg mb-3"
+            />
+
             <h2 className="text-yellow-300 font-bold">
               Pokemon #{item.tokenId}
             </h2>
