@@ -5,3 +5,22 @@ Frontend TODO
 4. Fully connect Frontend to Backend
 5. Live auction updates (event listeners)
 6. Transaction loading + toast system
+
+MVP-Critical (Finish First)
+1. Set real contract addresses in frontend/src/app/contract.ts
+2. Remove/update stale helper scripts using old contract/project names
+3. Add missing UI flows: mint, start auction, end auction, claim NFT, refund bids, cancel listing
+4. Expand tests for negative paths and full auction lifecycle in test/pokemon.test.ts
+5. Replace root placeholder test script in package.json with real Hardhat test commands
+6. Add root and frontend .env.example plus README setup/deploy instructions
+
+Hardening (Next)
+1. Add wallet chain/network checks and switch-network prompt
+2. Replace hardcoded token/listing discovery with dynamic reads
+3. Improve transaction UX with pending/success/error states
+4. Security hardening pass for marketplace/auction transfer and accounting logic
+
+Polish (Post-MVP)
+1. Improve card metadata/artwork rendering
+2. Add CI workflows for lint/test/build
+3. Optional: refactor NFT logic toward ERC721 compatibility
