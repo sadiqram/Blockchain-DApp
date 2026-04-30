@@ -7,7 +7,15 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "clean": "hardhat clean",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:yoda:local": "hardhat run scripts/deployYoda.js --network localhost",
+    "deploy:yoda:sepolia": "hardhat run scripts/deployYoda.js --network sepolia",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "scenario:purchase": "hardhat run scripts/test_purchase.js"
   },
   "repository": {
     "type": "git",
@@ -23,5 +31,8 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.1.2",
     "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }
