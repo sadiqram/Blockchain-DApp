@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-export const CONTRACT_ADDRESS = "0xb201aD24fa3B45Ea969A0a4b88057bB4b4AD23Fa";
+export const CONTRACT_ADDRESS = "0xDA0bab807633f07f013f94DD0E6A4F96F8742B53";
 
 export const CONTRACT_ABI = [
   "function listCard(uint256 cardId, uint256 price)",
@@ -8,8 +8,6 @@ export const CONTRACT_ABI = [
   "function placeBid(uint256 tokenId, uint256 amount)",
   "function ownerOf(uint256 tokenId) view returns (address)",
   "function listings(uint256) view returns (uint256 price, address seller)",
-
-  "function contractOwner() view returns (address)",
   "function getActiveAuctions() view returns (uint256[])",
   "function auctions(uint256) view returns (tuple(uint256 startingPrice,uint256 currentPrice,uint256 endTime,address highestBidder,uint256 highestBid,uint256 tokenId,address seller,bool active,bool ended,bool claimed,bool refunded))",
 ];
