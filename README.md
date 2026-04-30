@@ -1,37 +1,13 @@
-# Blockchain-DApp (Hardhat)
+# Sample Hardhat Project
 
-This project is configured with Hardhat and `@nomicfoundation/hardhat-toolbox` for compiling, testing, local deployment, and Sepolia deployment.
+This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
 
-## Setup
-
-```shell
-npm install
-cp .env.example .env
-```
-
-Fill `.env` with your RPC/API keys when deploying to Sepolia.
-
-## Available commands
+Try running some of the following tasks:
 
 ```shell
-npm run compile
-npm run test
-npm run clean
-npm run node
-npm run deploy:yoda:local
-npm run deploy:yoda:sepolia
-npm run deploy:local
-npm run deploy:sepolia
-npm run scenario:purchase
+npx hardhat help
+npx hardhat test
+REPORT_GAS=true npx hardhat test
+npx hardhat node
+npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
-
-## Notes
-
-- `deploy:yoda:*` deploys only the Yoda ERC20 (`ERC20Token`).
-- `deploy:*` deploys `PokemonFTCG` and either:
-  - deploys a fresh Yoda token first, or
-  - reuses `YODA_ADDRESS` from `.env` if provided.
-- `scenario:purchase` runs an end-to-end local scenario: deploys both contracts, mints a card, lists it, buys it, and validates ownership/payment.
-- Local deploy scripts with `--network localhost` expect `npm run node` in another terminal.
-- Sepolia deploy uses `SEPOLIA_RPC_URL` and `PRIVATE_KEY` from `.env`.
-- You can still use ignition modules, e.g. `npx hardhat ignition deploy ./ignition/modules/Lock.js`.
