@@ -3,20 +3,3 @@ Frontend TODO
 2. Fix bid page not loading after metamask connection
 3. Add sell button(Buy, Sell, Auctions(List,Bid))
 4. Fully connect Frontend to Backend
-
-roblem 2 (8 points). We are given a directed graph G = (V, E) with positive weight
-function: w : E → R>0, two vertices s, t ∈ V , and a coloring of the vertices such that
-every vertex is either red or blue. Suppose we have already computed the d and π array
-using Dijkstra’s algorithm: d[v] is the length of a shortest path from s to v, and π[v] is
-the vertex before v in the path.
-Please design a dynamic programming algorithm (i.e., define sub-problems, establish
-recurrence relations between sub-problems, compute the base case, write the dynamic
-programming algorithm pseudo-code) to count the number of shortest paths from
-s to t such that the number of red vertices on the path is exactly equal to
-the number of blue vertices on the path.
-Your algorithm should run in O(nm + n log n) time where n = |V | and m = |E|.
-Remark. Count the colors of all vertices on the path, including s and t.
-Hint: use the d array to help solve the counting problem. You do not need to worry
-about the integer overflow issue. That means, you assume a word can hold a very big
-integer, and basic operations over these big integers take O(1) time
-
