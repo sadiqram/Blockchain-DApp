@@ -1,36 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { getContract, CONTRACT_ADDRESS } from "../contract";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-
-export const YODA_TOKEN_ADDRESS = "0xYOUR_YODA_TOKEN_ADDRESS";
-const ERC20_ABI = [
-  "function approve(address spender, uint256 amount) returns (bool)",
-  "function balanceOf(address owner) view returns (uint256)",
-  "function receiveTokens()",
-];
+import { useWallet } from "../hooks/useWallet";
+import {
+  getReadOnlyContract,
+  getWriteContract,
+  CONTRACT_ADDRESS,
+  YODA_TOKEN_ADDRESS,
+  ERC20_ABI,
+} from "../contract";
 
 export default function Buy() {
-  const [account, setAccount] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showError, setShowError] = useState(false);
+  const { account, isConnected, connectWallet } = useWallet();
   const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
-
-  useEffect(() => {
-    const fetchListings = async () => {
+    const loadListings = async () => {
       try {
-        const contract = await getContract();
+        const contract = getReadOnlyContract();
 
-        const temp = [];
+        const temp: any[] = [];
 
         for (let i = 0; i < 4; i++) {
-          const listing = await contract.getListing(i);
+          const listing = await contract.listings(i);
 
           if (listing.price > 0) {
             temp.push({
@@ -44,64 +39,43 @@ export default function Buy() {
         setListings(temp);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchListings();
+    loadListings();
   }, []);
 
-  const checkIfWalletIsConnected = async () => {
-    try {
-      const { ethereum } = window as any;
-      if (ethereum) {
-        const accounts = await ethereum.request({ method: "eth_accounts" });
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-        }
-      }
-    } catch (error) {
-      console.error("Error checking wallet connection:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBuyClick = async (tokenId: number, price: string) => {
-    if (!account) {
-      setShowError(true);
-      return;
-    }
+  const handleBuy = async (tokenId: number, price: string) => {
+    if (!account) return;
 
     try {
-      const { ethereum } = window as any;
+      const signerContract = await getWriteContract();
 
+      const { ethereum } = window as any;
       const provider = new ethers.BrowserProvider(ethereum);
       const signer = await provider.getSigner();
 
-      const contract = await getContract();
-
-      // Convert price from contract (assumed 18 decimals)
-      const amount = BigInt(price);
-
       const token = new ethers.Contract(YODA_TOKEN_ADDRESS, ERC20_ABI, signer);
 
-      // 1. approve marketplace
+      const amount = BigInt(price);
+
       const approveTx = await token.approve(CONTRACT_ADDRESS, amount);
       await approveTx.wait();
 
-      // 2. buy NFT
-      const tx = await contract.buyCard(tokenId);
+      const tx = await signerContract.buyCard(tokenId);
       await tx.wait();
 
-      console.log("Bought successfully!");
+      console.log("Bought successfully");
     } catch (err) {
       console.error(err);
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         Loading...
       </div>
     );
@@ -109,45 +83,44 @@ export default function Buy() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Home link */}
       <div className="p-6">
-        <Link href="/">
-          <p className="text-blue-600 hover:text-blue-700 font-bold text-lg cursor-pointer">
-            Home
-          </p>
-        </Link>
+        <Link href="/">Home</Link>
       </div>
 
-      {/* Title */}
-      <h1 className="text-5xl font-bold text-blue-600 text-center mb-8">Buy</h1>
+      <h1 className="text-5xl text-center font-bold mb-8">Buy</h1>
 
-      {/* Error */}
-      {showError && (
-        <div className="flex justify-center mb-8">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg max-w-md text-center">
-            <p className="font-bold">Error!</p>
-            <p>You must connect your MetaMask wallet to buy items.</p>
-          </div>
+      {!isConnected ? (
+        <div className="flex justify-center">
+          <button
+            onClick={connectWallet}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg"
+          >
+            Connect Wallet
+          </button>
         </div>
+      ) : (
+        <p className="text-center mb-6">
+          Connected: {account?.slice(0, 6)}...{account?.slice(-4)}
+        </p>
       )}
 
-      {/* Listings */}
-      <div className="flex justify-center gap-4 py-8 flex-wrap">
+      <div className="flex justify-center gap-4 flex-wrap">
         {listings.map((item) => (
-          <div key={item.tokenId} className="flex flex-col items-center">
-            <div className="bg-blue-500 p-4 rounded-lg shadow-md flex flex-col items-center justify-center w-64 h-80">
-              <h2 className="text-2xl font-bold text-yellow-300 mb-4">
-                Pokemon #{item.tokenId}
-              </h2>
-            </div>
+          <div
+            key={item.tokenId}
+            className="bg-blue-500 p-4 w-64 rounded-lg text-center"
+          >
+            <h2 className="text-yellow-300 font-bold">
+              Pokemon #{item.tokenId}
+            </h2>
 
-            <p className="text-gray-800 font-bold mt-2">
-              Price: {ethers.formatUnits(item.price, 18)} Yoda
+            <p className="mt-2 text-white">
+              Price: {ethers.formatUnits(item.price, 18)} YODA
             </p>
 
             <button
-              onClick={() => handleBuyClick(item.tokenId, item.price)}
-              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors cursor-pointer"
+              onClick={() => handleBuy(item.tokenId, item.price)}
+              className="mt-3 bg-blue-700 text-white px-4 py-2 rounded-lg"
             >
               Buy
             </button>

@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
-export const CONTRACT_ADDRESS = "0xDA0bab807633f07f013f94DD0E6A4F96F8742B53";
+export const CONTRACT_ADDRESS = "";
+export const YODA_TOKEN_ADDRESS = "";
 
 export const CONTRACT_ABI = [
   "function listCard(uint256 cardId, uint256 price)",
@@ -17,8 +18,12 @@ export const ERC20_ABI = [
   "function receiveTokens()",
 ];
 
+export const getReadOnlyContract = () => {
+  const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
+  return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+};
 
-export const getContract = async () => {
+export const getWriteContract = async () => {
   const { ethereum } = window as any;
 
   if (!ethereum) throw new Error("MetaMask not found");

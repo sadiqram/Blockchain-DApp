@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-a46edb75527acd74b68e20f3ee2528fc911b5af9",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.4.2"
+  },
+  "userSourceNameMap": {
+    "contracts/Yoda.sol": "project/contracts/Yoda.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Yoda.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount)\n        external\n        returns (bool);\n    function allowance(address owner, address spender)\n        external\n        view\n        returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n    function transferFrom(address sender, address recipient, uint256 amount)\n        external\n        returns (bool);\n}\n\n\ncontract ERC20Token is IERC20\n{\n    \n    string public name;\n    string public symbol;\n    uint8 public decimals;\n    uint public initialReceiveAmount;\n    uint256 public totalSupply;\n    address public owner;\n    mapping(address => uint256) public balanceOf; // Balance of your tokens\n    mapping(address => mapping(address => uint256)) public allowance;\n    mapping(address => bool) public receivedTokensAtLeastOnce;\n\n    constructor(uint256 _initialReceiveAmount, uint8 _decimals) \n    {\n        name = \"yoda\";\n        symbol = \"YODA\";\n        decimals = _decimals;\n        initialReceiveAmount = _initialReceiveAmount ;//in whole units\n        totalSupply = _initialReceiveAmount * 10 ** decimals;\n        balanceOf[msg.sender] = totalSupply;\n        owner = msg.sender;\n    }\n    modifier onlyOwner() {\n       require(msg.sender == owner, \"Only contract owner can mint\");\n       _;\n    }\n\n    modifier notAlreadyReceived(){\n        require(receivedTokensAtLeastOnce[msg.sender]==false, \"You have already received tokens , contact the staff for more\");\n        _;\n    }\n \n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    // Transfer tokens to an address\n    function transfer(address _to, uint256 _value) public returns (bool success) \n    {\n        require(balanceOf[msg.sender] >= _value, \"Insufficient balance\");\n        require(_to != address(0), \"Invalid address\");\n        balanceOf[msg.sender] -= _value;\n        balanceOf[_to] += _value;\n        emit Transfer(msg.sender, _to, _value);\n        return true;\n    }\n\n    function approve(address _spender, uint256 _value) public returns (bool success) \n    {\n        require(_spender != address(0), \"Invalid address\");\n        allowance[msg.sender][_spender] = _value;\n        emit Approval(msg.sender, _spender, _value);\n        return true;\n    }\n  \n    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) \n    {\n        require(balanceOf[_from] >= _value, \"Insufficient balance\");\n        require(_to != address(0), \"Invalid address\");\n        require(allowance[_from][msg.sender] >= _value, \"Allowance exceeded\");\n        balanceOf[_from] -= _value;\n        balanceOf[_to] += _value;\n        allowance[_from][msg.sender] -= _value;\n        emit Transfer(_from, _to, _value);\n        return true;\n    }\n    function _mint(address account,uint256 amountInWei) internal{\n        require(account != address(0), \"Cannot mint to zero address\");\n        totalSupply += amountInWei;\n        balanceOf[account] += amountInWei;\n        emit Transfer(address(0), account, amountInWei);\n\n    } \n    // To create new tokens you mint\n    function mint(address account,uint256 amount) public onlyOwner \n    {   \n        _mint(account, amount*10**decimals);   \n    }\n\n    function receiveTokens() public notAlreadyReceived\n    {\n        _mint(msg.sender, initialReceiveAmount*10**decimals);\n        receivedTokensAtLeastOnce[msg.sender] = true;\n    } \n}"
+      }
+    }
+  }
+}
