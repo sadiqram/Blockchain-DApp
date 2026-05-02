@@ -3,6 +3,7 @@
 type Props = {
   card: any;
   onBuy: (id: number) => void;
+  isOwner?: boolean;
 };
 
 const pokemonImageMap: Record<string, string> = {
@@ -12,7 +13,7 @@ const pokemonImageMap: Record<string, string> = {
   Pikachu: "/pikachu.jpg",
 };
 
-export default function ListingCard({ card, onBuy }: Props) {
+export default function ListingCard({ card, onBuy, isOwner }: Props) {
   const image = pokemonImageMap[card.name] || "/placeholder.png";
 
   return (
@@ -35,10 +36,13 @@ export default function ListingCard({ card, onBuy }: Props) {
       <p className="mt-2 font-bold text-green-600">Price: {card.price}</p>
 
       <button
+        disabled={isOwner}
         onClick={() => onBuy(card.id)}
-        className="mt-3 w-full bg-green-600 text-white py-2 rounded"
+        className={`mt-3 w-full py-2 rounded text-white ${
+          isOwner ? "bg-gray-400 cursor-not-allowed" : "bg-green-600"
+        }`}
       >
-        Buy
+        {isOwner ? "Your Listing" : "Buy"}
       </button>
     </div>
   );

@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react";
 import { Contract } from "ethers";
 import { ethers } from "ethers";
-
 import { useWallet } from "../hooks/useWallet";
 import { useMarketplace } from "../hooks/useMarketplace";
 import { getReadOnlyContract, getWriteContract } from "../contract";
 import { formatYoda } from "../utils/formatYoda";
-
 
 import ListingCard from "../components/ListingCard";
 
@@ -53,7 +51,8 @@ export default function MarketplacePage() {
 
     loadContracts();
   }, []);
-
+  const isOwner = (card: any) =>
+    !!account && card.seller?.toLowerCase() === account.toLowerCase();
   // -----------------------------
   // Load listings
   // -----------------------------
@@ -110,18 +109,17 @@ export default function MarketplacePage() {
   // -----------------------------
   // BUY HANDLER
   // -----------------------------
-  const handleBuy = async (id: number) => {
-    if (!writeContract) return;
+const handleBuy = async (id: number) => {
+  try {
+    await buyCard(id);
 
-    try {
-      await buyCard(id);
-
-      // refresh marketplace after buy
-      await loadListings();
-    } catch (err) {
-      console.error("Buy failed:", err);
-    }
-  };
+    // confirm on-chain success BEFORE removing
+    setListedCards((prev) => prev.filter((card) => card.id !== id));
+  } catch (err) {
+    console.error("Buy failed:", err);
+    await loadListings(); // fallback sync
+  }
+};
 
   // -----------------------------
   // UI
@@ -138,7 +136,7 @@ export default function MarketplacePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {listedCards.map((card) => (
-          <ListingCard key={card.id} card={card} onBuy={handleBuy} />
+          <ListingCard key={card.id} card={card} onBuy={handleBuy} isOwner={isOwner(card)} />
         ))}
       </div>
     </div>

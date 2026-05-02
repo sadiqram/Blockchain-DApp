@@ -94,7 +94,7 @@ export default function AuctionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-8 text-black">
       <h1 className="text-4xl font-bold mb-6">Auctions</h1>
 
       {auctions.length === 0 && <p>No active auctions</p>}

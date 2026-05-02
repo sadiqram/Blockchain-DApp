@@ -114,7 +114,7 @@ export default function Home() {
           </button>
         </Link>
 
-        <Link href="/list">
+        <Link href="/my-cards">
           <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">
             List
           </button>
