@@ -1,49 +1,23 @@
-// NFT will be here to mint
 const hre = require("hardhat");
 
-const LOCAL_TESTING = false; // true for local testing | false for sepolia
-
 async function main() {
-    const [deployer] = await hre.ethers.getSigners(); // Get the deployer account
+  const { ethers } = await hre.network.connect();
+  const [deployer] = await ethers.getSigners();
 
-    let yodaAddress; // Declare yoda address
+  const ERC20Token = await ethers.getContractFactory("ERC20Token");
+  const yoda = await ERC20Token.deploy(1000000, 18);
+  await yoda.waitForDeployment();
 
-    if (LOCAL_TESTING) {
-        console.log("Local Testing");
+  const PokemonFTCG = await ethers.getContractFactory("PokemonFTCG");
+  const pokemon = await PokemonFTCG.deploy(await yoda.getAddress());
+  await pokemon.waitForDeployment();
 
-        const YODA = await hre.ethers.getContractFactory("YODA");
-        const yoda = await YODA.deploy("Yoda Token", "YODA", 1000000); // 1 million supply
-        await yoda.deploymentTransaction().wait();
-        
-        yodaAddress = yoda.target;
-
-        console.log("YODA deployed to:", yodaAddress);
-
-    } else {
-        console.log("Sepolia deployment");
-
-        yodaAddress = "0xREAL_YODA_ADDRESS"; // Given yoda address
-    }
-
-    console.log("Deploying FantasyPokemon contract");
-
-    const FantasyPokemon = await hre.ethers.getContractFactory("FantasyPokemon");
-
-    const fantasyPokemon= await FantasyPokemon.deploy(
-        yodaAddress, // YODA address
-        "FantasyPokemon", // NFT name
-        "FPNFT", // NFT symbol
-        5000 // Global mint price (2 decimal, 5000 -> 50.00 YODA)
-    );
-
-    await fantasyPokemon.deploymentTransaction().wait();
-
-    console.log("FantasyPokemon contract deployed to:", fantasyPokemon.target);
-
-    console.log("Deployer address:", deployer.address);
+  console.log("ERC20Token deployed to:", await yoda.getAddress());
+  console.log("PokemonFTCG deployed to:", await pokemon.getAddress());
+  console.log("Deployer address:", deployer.address);
 }
 
 main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
+  console.error(error);
+  process.exitCode = 1;
 });

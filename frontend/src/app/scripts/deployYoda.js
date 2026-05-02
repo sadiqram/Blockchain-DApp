@@ -1,15 +1,15 @@
 const hre = require("hardhat");
 
-// Deploy script for local hardhat testing
-
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const { ethers } = await hre.network.connect();
+  const [deployer] = await ethers.getSigners();
 
-  const YODA = await hre.ethers.getContractFactory("YODA");
-  const yoda = await YODA.deploy("Yoda Token", "YODA", 1000000); // 1 million supply
-  await yoda.deploymentTransaction().wait();
+  const ERC20Token = await ethers.getContractFactory("ERC20Token");
+  const yoda = await ERC20Token.deploy(1000000, 18);
+  await yoda.waitForDeployment();
 
-  console.log("✅ YODA deployed to:", yoda.target);
+  console.log("ERC20Token deployed to:", await yoda.getAddress());
+  console.log("Deployer address:", deployer.address);
 }
 
 main().catch((error) => {
