@@ -9,10 +9,10 @@ type Props = {
 
 // images are currently not being displayed properly
 const pokemonImageMap: Record<string, string> = {
-  Snorlax: "../public/snorlax.jpg",
-  Charizard: "../public/charizard.jpg",
-  Mewtwo: "../public/mewtwo.jpg",
-  Pikachu: ".../public/pikachu.jpg",
+  Snorlax: "/snorlax.jpg",
+  Charizard: "/charizard.jpg",
+  Mewtwo: "/mewtwo.jpg",
+  Pikachu: "/pikachu.jpg",
 };
 //  DApp / frontend /src / app/ public / charizard.jpg;
 
