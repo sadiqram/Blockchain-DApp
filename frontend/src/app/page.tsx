@@ -2,7 +2,28 @@
 
 import Link from "next/link";
 import { useWallet } from "./hooks/useWallet";
+import { ethers } from "ethers";
+import DisplayCards from "./components/displayCards";
+import { getReadOnlyContract } from "./contract";
+import { useEffect, useState } from "react";
+import { Contract } from "ethers";
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./contract";
 
+// type CardType = {
+//   id: number;
+//   name: string;
+//   attack: string;
+//   defense: string;
+//   hp: string;
+//   rarity: number;
+//   shiny: boolean;
+//   owner: string;
+// };
+
+// type Props = {
+//   contract: ethers.Contract | null;
+//   account: string | null;
+// };
 export default function Home() {
   const {
     account,
@@ -11,6 +32,34 @@ export default function Home() {
     connectWallet,
     disconnectWallet,
   } = useWallet();
+  const [readContract, setReadContract] = useState<Contract | null>(null);
+  const [writeContract, setWriteContract] = useState<Contract | null>(null);
+  useEffect(() => {
+    const loadContracts = async () => {
+      if (!window.ethereum) return;
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+
+      // ✅ read contract
+      const read = await getReadOnlyContract();
+      setReadContract(read);
+
+      // ✅ write contract (only if wallet connected)
+      try {
+        const signer = await provider.getSigner();
+
+        const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+        const abi = CONTRACT_ABI; // your ABI
+
+        const write = new ethers.Contract(contractAddress, abi, signer);
+        setWriteContract(write);
+      } catch (err) {
+        console.log("No signer yet");
+      }
+    };
+
+    loadContracts();
+  }, [account]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
@@ -20,16 +69,7 @@ export default function Home() {
       </h1>
 
       {/* Cards */}
-      <div className="flex gap-4 mb-8">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div
-            key={i}
-            className="bg-blue-500 p-4 rounded-lg shadow-md flex flex-col items-center justify-center w-64 h-80"
-          >
-            <h2 className="text-2xl font-bold text-yellow-300 mb-4">Pokemon</h2>
-          </div>
-        ))}
-      </div>
+      <DisplayCards contract={readContract} account={account} />
 
       {/* Text */}
       <h2 className="text-3xl font-bold text-gray-800 mb-8">
