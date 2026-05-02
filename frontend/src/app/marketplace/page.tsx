@@ -70,11 +70,12 @@ export default function MarketplacePage() {
           const card = await readContract.cards(i);
           const listing = await readContract.getListing(i);
 
-          const price = formatYoda(listing.price.toString());
+          const rawPrice = listing.price.toString();
+          const price = formatYoda(rawPrice);
           const seller = listing.seller;
 
           // only listed cards
-          if (price !== "0" && seller !== ethers.ZeroAddress) {
+          if (rawPrice !== "0" && seller !== ethers.ZeroAddress) {
             results.push({
               id: i,
               name: card.name,
