@@ -4,91 +4,70 @@ import { useEffect, useState } from "react";
 
 export function useWallet() {
   const [account, setAccount] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const isConnected = !!account;
 
   // -------------------------
-  // Connect wallet
+  // Restore session (ONLY from storage)
+  // -------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedAccount = sessionStorage.getItem("wallet_account");
+
+    if (savedAccount) {
+      setAccount(savedAccount);
+    }
+  }, []);
+
+  // -------------------------
+  // Connect wallet (manual only)
   // -------------------------
   const connectWallet = async () => {
-    try {
-      const { ethereum } = window as any;
+    if (typeof window === "undefined") return;
 
-      if (!ethereum) {
-        alert("MetaMask not found");
-        return;
-      }
+    const { ethereum } = window as any;
+
+    if (!ethereum) {
+      alert("MetaMask not found. Please install it.");
+      return;
+    }
+
+    try {
+      setIsConnecting(true);
 
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
 
-      if (accounts?.length > 0) {
+      if (accounts && accounts.length > 0) {
         setAccount(accounts[0]);
-        setIsConnected(true);
+        sessionStorage.setItem("wallet_account", accounts[0]);
       }
-    } catch (err) {
-      console.error("Wallet connection failed:", err);
+    } catch (err: any) {
+      if (err?.code === 4001) {
+        console.log("User rejected connection");
+      } else {
+        console.error("Connection error:", err);
+      }
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   // -------------------------
-  // Disconnect (UI only)
+  // Disconnect wallet (UI only)
   // -------------------------
   const disconnectWallet = () => {
     setAccount(null);
-    setIsConnected(false);
+    sessionStorage.removeItem("wallet_account");
   };
-
-  // -------------------------
-  // Auto-connect + listeners
-  // -------------------------
-  useEffect(() => {
-    const { ethereum } = window as any;
-
-    if (!ethereum) return;
-
-    // 1. Auto-reconnect on refresh
-    const checkConnection = async () => {
-      try {
-        const accounts = await ethereum.request({
-          method: "eth_accounts",
-        });
-
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-          setIsConnected(true);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    checkConnection();
-
-    // 2. Handle account switching in MetaMask
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (!accounts || accounts.length === 0) {
-        setAccount(null);
-        setIsConnected(false);
-      } else {
-        setAccount(accounts[0]);
-        setIsConnected(true);
-      }
-    };
-
-    ethereum.on("accountsChanged", handleAccountsChanged);
-
-    // cleanup
-    return () => {
-      if (ethereum.removeListener) {
-        ethereum.removeListener("accountsChanged", handleAccountsChanged);
-      }
-    };
-  }, []);
 
   return {
     account,
     isConnected,
+    isConnecting,
     connectWallet,
     disconnectWallet,
   };

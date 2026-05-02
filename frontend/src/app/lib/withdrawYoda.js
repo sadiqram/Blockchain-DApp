@@ -1,18 +1,18 @@
 import { ethers } from "ethers";
-import FantasyPokemonABI from "../contracts/FantasyPokemon.json";
+import YODAABI from "../contracts/YODA.json";
 
-export async function withdrawYoda(contractAddress) {
+export async function requestYodaTokens(contractAddress) {
     try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const contract = new ethers.Contract(contractAddress, FantasyPokemonABI.abi, signer);
+        const contract = new ethers.Contract(contractAddress, YODAABI.abi, signer);
 
-        const tx = await contract.withdrawYoda();
+        const tx = await contract.receiveTokens();
         await tx.wait();
 
-        console.log("YODA withdrawn to contract owner");
+        console.log("YODA tokens requested successfully");
     } catch (err) {
-        console.error("Withdrawal failed:", err);
+        console.error("YODA request failed:", err);
         throw err;
     }
 }
