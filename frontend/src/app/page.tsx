@@ -120,7 +120,7 @@ export default function Home() {
           </button>
         </Link>
 
-        <Link href="/bid">
+        <Link href="/auction">
           <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">
             Bid
           </button>
