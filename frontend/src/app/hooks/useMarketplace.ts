@@ -60,11 +60,34 @@ export function useMarketplace({ contract }: UseMarketplaceProps) {
       setLoading(false);
     }
   };
+     const refreshListings = async () => {
+       if (!contract) return [];
+
+       const total = await contract.totalSupply();
+       const results = [];
+
+       for (let i = 0; i < total; i++) {
+         try {
+           const listing = await contract.getListing(i);
+
+           if (listing.price.toString() !== "0") {
+             results.push({
+               id: i,
+               price: listing.price.toString(),
+               seller: listing.seller,
+             });
+           }
+         } catch {}
+       }
+
+       return results;
+     };
 
   return {
     listCard,
     buyCard,
-    loading,
+      loading,
+    refreshListings,
     error,
   };
 }

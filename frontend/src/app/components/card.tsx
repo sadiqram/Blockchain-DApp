@@ -16,7 +16,14 @@ export default function Card({ card, children }: Props) {
   const image = pokemonImageMap[card.name?.toLowerCase()] || "/placeholder.png";
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 w-64 text-black">
+      <div className="bg-white rounded-xl shadow p-4 w-64 text-black">
+          {/* properly implement this part and proper styling acrosss pages after basic functionality is completed
+      {/* {card.price ? (
+        <p className="text-green-600 font-semibold">Listed: {card.price}</p>
+      ) : (
+        <p className="text-gray-500">Not Listed</p>
+      )} */}
+
       {/* IMAGE */}
       <img
         src={image}
