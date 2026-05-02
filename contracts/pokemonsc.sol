@@ -313,6 +313,10 @@ contract PokemonFTCG {
 
         auction.refunded = true;
     }
+
+    function totalSupply() public view returns (uint256) {
+        return _nextTokenId;
+    }
     function getAuctionWinner(
         uint256 tokenId
     ) public view returns (address, uint256) {
