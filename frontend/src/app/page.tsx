@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { Bangers } from "next/font/google";
-
-const titleFont = Bangers({
-  weight: "400",
-  subsets: ["latin"],
-});
+import { useWallet } from "./hooks/useWallet";
 
 export default function Home() {
   const {
@@ -21,40 +15,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
       {/* Header */}
-      <h1
-        className={`${titleFont.className} text-6xl mb-16 text-[#ffcc03]`}
-        style={{
-          textShadow: `
-      -3px -3px 0 #2a75bb,
-       3px -3px 0 #2a75bb,
-      -3px  3px 0 #2a75bb,
-       3px  3px 0 #2a75bb,
-       0px  3px 0 #2a75bb,
-       3px  0px 0 #2a75bb,
-      -3px  0px 0 #2a75bb,
-       0px -3px 0 #2a75bb
-    `,
-        }}
-      >
-        Pokemon FTCG
+      <h1 className="text-5xl font-bold text-blue-600 mb-16">
+        Fantasy Pokemon Trading Cards
       </h1>
 
       {/* Cards */}
       <div className="flex gap-4 mb-8">
-        {["/charizard.jpg", "/mewtwo.jpg", "/pikachu.jpg", "/snorlax.jpg"].map(
-          (image, i) => (
-            <div
-              key={i}
-              className="w-64 h-80 rounded-lg shadow-md overflow-hidden bg-blue-500"
-            >
-              <img
-                src={image}
-                alt={`Pokemon ${i + 1}`}
-                className="w-full h-full object-fill"
-              />
-            </div>
-          ),
-        )}
+        {Array.from({ length: 4 }, (_, i) => (
+          <div
+            key={i}
+            className="bg-blue-500 p-4 rounded-lg shadow-md flex flex-col items-center justify-center w-64 h-80"
+          >
+            <h2 className="text-2xl font-bold text-yellow-300 mb-4">Pokemon</h2>
+          </div>
+        ))}
       </div>
 
       {/* Text */}
