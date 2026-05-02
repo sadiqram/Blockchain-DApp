@@ -17,38 +17,73 @@ export default function Bid() {
 
   const [auctions, setAuctions] = useState<any[]>([]);
   const [bids, setBids] = useState<{ [key: number]: string }>({});
+  const [status, setStatus] = useState("");
+
+  const loadAuctions = async () => {
+    try {
+      const contract = getReadOnlyContract();
+
+      const ids = await contract.getActiveAuctions();
+      const temp: any[] = [];
+
+      for (let id of ids) {
+        const auction = await contract.auctions(id);
+
+        temp.push({
+          tokenId: Number(id),
+          currentPrice: auction.currentPrice.toString(),
+          highestBid: auction.highestBid.toString(),
+          endTime: Number(auction.endTime),
+        });
+      }
+
+      setAuctions(temp);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    const loadAuctions = async () => {
-      try {
-        const contract = getReadOnlyContract();
-
-        const ids = await contract.getActiveAuctions();
-        const temp: any[] = [];
-
-        for (let id of ids) {
-          const auction = await contract.auctions(id);
-
-          temp.push({
-            tokenId: Number(id),
-            currentPrice: auction.currentPrice.toString(),
-            highestBid: auction.highestBid.toString(),
-          });
-        }
-
-        setAuctions(temp);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
     loadAuctions();
   }, []);
+
+  const withStatus = async (label: string, action: () => Promise<void>) => {
+    try {
+      setStatus(`${label}...`);
+      await action();
+      setStatus(`${label} complete`);
+      await loadAuctions();
+    } catch (err) {
+      console.error(err);
+      setStatus(`${label} failed`);
+    }
+  };
+
+  const handleEndAuction = async (tokenId: number) =>
+    withStatus(`Ending auction #${tokenId}`, async () => {
+      const contract = await getWriteContract();
+      const tx = await contract.endAuction(tokenId);
+      await tx.wait();
+    });
+
+  const handleClaim = async (tokenId: number) =>
+    withStatus(`Claiming NFT #${tokenId}`, async () => {
+      const contract = await getWriteContract();
+      const tx = await contract.claimNFT(tokenId);
+      await tx.wait();
+    });
+
+  const handleRefund = async (tokenId: number) =>
+    withStatus(`Refunding bids for #${tokenId}`, async () => {
+      const contract = await getWriteContract();
+      const tx = await contract.refundBids(tokenId);
+      await tx.wait();
+    });
 
   const handleBid = async (tokenId: number, bidAmount: string) => {
     if (!account) return;
 
-    try {
+    await withStatus(`Placing bid on #${tokenId}`, async () => {
       const signerContract = await getWriteContract();
 
       const { ethereum } = window as any;
@@ -64,11 +99,7 @@ export default function Bid() {
 
       const tx = await signerContract.placeBid(tokenId, amount);
       await tx.wait();
-
-      console.log("Bid placed!");
-    } catch (err) {
-      console.error(err);
-    }
+    });
   };
 
   return (
@@ -103,6 +134,8 @@ export default function Bid() {
         </div>
       )}
 
+      {status ? <p className="text-center mb-4 text-gray-700">{status}</p> : null}
+
       <div className="flex justify-center gap-4 flex-wrap">
         {auctions.map((a) => (
           <div
@@ -113,6 +146,9 @@ export default function Bid() {
 
             <p className="text-white mt-2">
               Current: {ethers.formatUnits(a.currentPrice, 18)}
+            </p>
+            <p className="text-white mt-2">
+              Ends: {new Date(a.endTime * 1000).toLocaleTimeString()}
             </p>
 
             <input
@@ -129,6 +165,27 @@ export default function Bid() {
               className="mt-2 bg-blue-700 text-white px-4 py-2 rounded"
             >
               Bid
+            </button>
+
+            <button
+              onClick={() => handleEndAuction(a.tokenId)}
+              className="mt-2 bg-orange-700 text-white px-4 py-2 rounded"
+            >
+              End
+            </button>
+
+            <button
+              onClick={() => handleClaim(a.tokenId)}
+              className="mt-2 bg-green-700 text-white px-4 py-2 rounded"
+            >
+              Claim
+            </button>
+
+            <button
+              onClick={() => handleRefund(a.tokenId)}
+              className="mt-2 bg-purple-700 text-white px-4 py-2 rounded"
+            >
+              Refund
             </button>
           </div>
         ))}

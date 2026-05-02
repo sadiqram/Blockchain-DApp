@@ -10,81 +10,13 @@ const titleFont = Bangers({
 });
 
 export default function Home() {
-  const [account, setAccount] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-
-  // ✅ Check connection on load (from your first implementation)
-  useEffect(() => {
-    checkIfWalletIsConnected();
-
-    if (window.ethereum) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-          setIsConnected(true);
-        } else {
-          setAccount(null);
-          setIsConnected(false);
-        }
-      };
-
-      window.ethereum.on("accountsChanged", handleAccountsChanged);
-
-      return () => {
-        window.ethereum.removeListener(
-          "accountsChanged",
-          handleAccountsChanged,
-        );
-      };
-    }
-  }, []);
-
-  const checkIfWalletIsConnected = async () => {
-    try {
-      const { ethereum } = window as any;
-      if (!ethereum) return;
-
-      const accounts = await ethereum.request({ method: "eth_accounts" });
-
-      if (accounts.length > 0) {
-        setAccount(accounts[0]);
-        setIsConnected(true);
-      }
-    } catch (error) {
-      console.error("Error checking wallet:", error);
-    }
-  };
-
-  // ✅ Improved connect (from second implementation)
-  const connectWallet = async () => {
-    try {
-      setIsConnecting(true);
-
-      const { ethereum } = window as any;
-      if (!ethereum) {
-        alert("Please install MetaMask!");
-        return;
-      }
-
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-
-      setAccount(accounts[0]);
-      setIsConnected(true);
-    } catch (error) {
-      console.error("Error connecting wallet:", error);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  // ✅ Disconnect (UI reset only)
-  const disconnectWallet = () => {
-    setAccount(null);
-    setIsConnected(false);
-  };
+  const {
+    account,
+    isConnected,
+    isConnecting,
+    connectWallet,
+    disconnectWallet,
+  } = useWallet();
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
@@ -109,23 +41,20 @@ export default function Home() {
 
       {/* Cards */}
       <div className="flex gap-4 mb-8">
-        {[
-          "/charizard.jpg",
-          "/mewtwo.jpg",
-          "/pikachu.jpg",
-          "/snorlax.jpg",
-        ].map((image, i) => (
-          <div
-            key={i}
-            className="w-64 h-80 rounded-lg shadow-md overflow-hidden bg-blue-500"
-          >
-            <img
-              src={image}
-              alt={`Pokemon ${i + 1}`}
-              className="w-full h-full object-fill"
-            />
-          </div>
-        ))}
+        {["/charizard.jpg", "/mewtwo.jpg", "/pikachu.jpg", "/snorlax.jpg"].map(
+          (image, i) => (
+            <div
+              key={i}
+              className="w-64 h-80 rounded-lg shadow-md overflow-hidden bg-blue-500"
+            >
+              <img
+                src={image}
+                alt={`Pokemon ${i + 1}`}
+                className="w-full h-full object-fill"
+              />
+            </div>
+          ),
+        )}
       </div>
 
       {/* Text */}
@@ -159,6 +88,12 @@ export default function Home() {
 
       {/* Navigation */}
       <div className="flex gap-4 mt-4">
+        <Link href="/mint">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">
+            Mint
+          </button>
+        </Link>
+
         <Link href="/buy">
           <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md">
             Buy
