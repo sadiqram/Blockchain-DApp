@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Contract } from "ethers";
-
+import Card from "./card";
 type Props = {
     contract: Contract | null;
     account: string | null;
@@ -55,8 +55,15 @@ export default function DisplayCards({ contract,account }:Props) {
       : [];
 
   return (
-    <div className="grid grid-cols-3 gap-4 mt-6">
-      {cards.map((card) => (
+        <div>
+      <h2 className="text-xl font-bold mb-2">My Cards</h2>
+      <div className="grid grid-cols-3 gap-4">
+        {myCards.map((card) => (
+          <Card key={card.id} card={card} />
+        ))}
+      </div>
+    
+      {/* {cards.map((card) => (
         <div key={card.id} className="bg-white p-4 rounded shadow">
           <h2 className="text-xl font-bold">{card.name}</h2>
           <p>HP: {card.hp}</p>
@@ -66,7 +73,7 @@ export default function DisplayCards({ contract,account }:Props) {
           <p>{card.shiny ? "✨ Shiny" : ""}</p>
           <p className="text-xs">Owner: {card.owner.slice(0, 6)}...</p>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }
