@@ -7,13 +7,14 @@ type Props = {
   onList?: (id: number, price: string) => void;
 };
 
+// images are currently not being displayed properly
 const pokemonImageMap: Record<string, string> = {
   Snorlax: "../public/snorlax.jpg",
   Charizard: "../public/charizard.jpg",
   Mewtwo: "../public/mewtwo.jpg",
   Pikachu: ".../public/pikachu.jpg",
 };
-//  DApp / frontend / public / charizard.jpg;
+//  DApp / frontend /src / app/ public / charizard.jpg;
 
 export default function Card({ card, onList }: Props) {
   const [price, setPrice] = useState("");
@@ -21,7 +22,7 @@ export default function Card({ card, onList }: Props) {
   const image = pokemonImageMap[card.name] || "/placeholder.png";
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 w-64">
+    <div className="bg-white rounded-xl shadow p-4 w-64 text-black">
       {/* IMAGE */}
       <img
         src={image}
