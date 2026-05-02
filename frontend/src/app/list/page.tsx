@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ethers } from "ethers";
 import { useWallet } from "../hooks/useWallet";
 import { getWriteContract } from "../contract";
 
@@ -10,16 +11,53 @@ export default function List() {
 
   const [tokenId, setTokenId] = useState("");
   const [price, setPrice] = useState("");
+  const [auctionDuration, setAuctionDuration] = useState("300");
+  const [status, setStatus] = useState("");
 
   const handleList = async () => {
     if (!account) return;
 
     try {
       const contract = await getWriteContract();
-
-      await contract.listCard(Number(tokenId), price);
+      const tx = await contract.listCard(
+        Number(tokenId),
+        ethers.parseUnits(price || "0", 18),
+      );
+      await tx.wait();
+      setStatus(`Listed card #${tokenId}`);
     } catch (err) {
       console.error(err);
+      setStatus("Failed to list card");
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!account) return;
+    try {
+      const contract = await getWriteContract();
+      const tx = await contract.cancelListing(Number(tokenId));
+      await tx.wait();
+      setStatus(`Canceled listing #${tokenId}`);
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to cancel listing");
+    }
+  };
+
+  const handleStartAuction = async () => {
+    if (!account) return;
+    try {
+      const contract = await getWriteContract();
+      const tx = await contract.startAuction(
+        Number(tokenId),
+        ethers.parseUnits(price || "0", 18),
+        Number(auctionDuration),
+      );
+      await tx.wait();
+      setStatus(`Started auction for #${tokenId}`);
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to start auction");
     }
   };
 
@@ -67,6 +105,29 @@ export default function List() {
         >
           List NFT
         </button>
+
+        <button
+          onClick={handleCancel}
+          className="bg-orange-600 text-white px-6 py-2 rounded"
+        >
+          Cancel Listing
+        </button>
+
+        <input
+          className="px-3 py-2 text-black rounded"
+          placeholder="Auction duration (seconds)"
+          value={auctionDuration}
+          onChange={(e) => setAuctionDuration(e.target.value)}
+        />
+
+        <button
+          onClick={handleStartAuction}
+          className="bg-purple-700 text-white px-6 py-2 rounded"
+        >
+          Start Auction
+        </button>
+
+        {status ? <p className="text-sm text-gray-700">{status}</p> : null}
       </div>
     </div>
   );
