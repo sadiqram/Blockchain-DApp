@@ -1,24 +1,10 @@
 Frontend TODO
-1. Add and style a disconnect/sign out button
-2. Fix bid page not loading after metamask connection
-3. Add sell button(Buy, Sell, Auctions(List,Bid))
+1. Remove listing after buy
+2. Prevent buying own cards
+3. Live auction updates (event listeners)
 4. Fully connect Frontend to Backend
-5. Live auction updates (event listeners)
-6. Transaction loading + toast system
+5. Transaction loading + toast system
 
-MVP-Critical (Finish First)
-1. [x] Set real contract addresses in frontend/src/app/contract.ts
-2. [x] Remove/update stale helper scripts using old contract/project names
-3. [x] Add missing UI flows: mint, start auction, end auction, claim NFT, refund bids, cancel listing
-4. [x] Expand tests for negative paths and full auction lifecycle in test/pokemon.test.ts
-5. [x] Replace root placeholder test script in package.json with real Hardhat test commands
-6. [x] Add root and frontend .env.example plus README setup/deploy instructions
-
-Hardening (Next)
-1. Add wallet chain/network checks and switch-network prompt
-2. Replace hardcoded token/listing discovery with dynamic reads
-3. Improve transaction UX with pending/success/error states
-4. Security hardening pass for marketplace/auction transfer and accounting logic
 
 Polish (Post-MVP)
 1. Improve card metadata/artwork rendering
