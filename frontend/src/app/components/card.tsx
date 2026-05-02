@@ -1,25 +1,19 @@
 "use client";
 
-import { useState } from "react";
-
 type Props = {
   card: any;
-  onList?: (id: number, price: string) => void;
+  children?: React.ReactNode;
 };
 
-// images are currently not being displayed properly
 const pokemonImageMap: Record<string, string> = {
-  Snorlax: "/snorlax.jpg",
-  Charizard: "/charizard.jpg",
-  Mewtwo: "/mewtwo.jpg",
-  Pikachu: "/pikachu.jpg",
+  snorlax: "/snorlax.jpg",
+  charizard: "/charizard.jpg",
+  mewtwo: "/mewtwo.jpg",
+  pikachu: "/pikachu.jpg",
 };
-//  DApp / frontend /src / app/ public / charizard.jpg;
 
-export default function Card({ card, onList }: Props) {
-  const [price, setPrice] = useState("");
-
-  const image = pokemonImageMap[card.name] || "/placeholder.png";
+export default function Card({ card, children }: Props) {
+  const image = pokemonImageMap[card.name?.toLowerCase()] || "/placeholder.png";
 
   return (
     <div className="bg-white rounded-xl shadow p-4 w-64 text-black">
@@ -37,23 +31,8 @@ export default function Card({ card, onList }: Props) {
       <p>DEF: {card.defense}</p>
       <p>Rarity: {card.rarity}</p>
 
-      {/* LIST ACTION */}
-      {onList && (
-        <div className="mt-3 flex gap-2">
-          <input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="Price"
-            className="border p-1 w-full text-sm"
-          />
-          <button
-            onClick={() => onList(card.id, price)}
-            className="bg-blue-600 text-white px-2 py-1 text-sm rounded"
-          >
-            List
-          </button>
-        </div>
-      )}
+      {/* ACTIONS */}
+      <div className="mt-3 flex gap-2 flex-wrap">{children}</div>
     </div>
   );
 }

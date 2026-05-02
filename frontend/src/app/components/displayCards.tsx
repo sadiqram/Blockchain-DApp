@@ -62,6 +62,7 @@ export default function DisplayCards({ contract,account }:Props) {
           <Card key={card.id} card={card} />
         ))}
       </div>
+      
     
       {/* {cards.map((card) => (
         <div key={card.id} className="bg-white p-4 rounded shadow">
