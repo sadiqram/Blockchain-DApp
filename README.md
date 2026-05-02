@@ -1,57 +1,84 @@
-# Sample Hardhat 3 Beta Project (`mocha` and `ethers`)
+# Fantasy Pokemon Trading Card Game dApp
 
-This project showcases a Hardhat 3 Beta project using `mocha` for tests and the `ethers` library for Ethereum interactions.
+Hardhat + Solidity + Next.js dApp for minting, listing, buying, and auctioning Pokemon cards using a YODA ERC20 token.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## Requirements
 
-## Project Overview
+- Node.js `>= 22.10.0` (required by this Hardhat setup)
+- npm
+- MetaMask (for frontend write actions)
 
-This example project includes:
+## Environment Setup
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using `mocha` and ethers.js
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+### Root (`/`)
 
-## Usage
-
-### Running Tests
-
-To run all the tests in the project, execute the following command:
+Copy `.env.example` to `.env` and fill values:
 
 ```shell
-npx hardhat test
+cp .env.example .env
 ```
 
-You can also selectively run the Solidity or `mocha` tests:
+- `SEPOLIA_RPC_URL`: Sepolia RPC URL
+- `SEPOLIA_PRIVATE_KEY`: deployer private key for Sepolia deployment
+
+### Frontend (`/frontend`)
+
+Copy `frontend/.env.example` to `frontend/.env.local`:
 
 ```shell
-npx hardhat test solidity
-npx hardhat test mocha
+cp frontend/.env.example frontend/.env.local
 ```
 
-### Make a deployment to Sepolia
+- `NEXT_PUBLIC_RPC_URL`: RPC endpoint for read-only frontend calls
+- `NEXT_PUBLIC_POKEMON_CONTRACT_ADDRESS`: deployed `PokemonFTCG` address
+- `NEXT_PUBLIC_YODA_TOKEN_ADDRESS`: deployed `ERC20Token` address
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
+## Install
 
 ```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+npm install
+cd frontend && npm install
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+## Local Deploy (Hardhat)
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+Deploy both token and Pokemon contract locally:
 
 ```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+npx hardhat ignition deploy ignition/modules/PokemonFTCG.ts
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+Use the addresses from:
+
+- `ignition/deployments/chain-31337/deployed_addresses.json`
+
+Set them in `frontend/.env.local`.
+
+## Run Tests
 
 ```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+npm test
 ```
+
+Optional:
+
+```shell
+npm run test:mocha
+npm run test:solidity
+```
+
+## Run Frontend
+
+```shell
+cd frontend
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Current MVP Features
+
+- Owner minting of Pokemon cards
+- Card listing and buying with YODA token
+- Auction flow: start, bid, end, claim, refund
+- Frontend pages for mint, list, buy, and bid
