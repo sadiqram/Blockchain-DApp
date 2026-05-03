@@ -42,8 +42,12 @@ export default function Card({
   return (
     <div className="bg-white text-black rounded-xl shadow p-4 w-64">
       {/* IMAGE */}
-    
-      <div className="w-full h-40 bg-gradient-to-b from-gray-100 to-gray-200 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+
+      <div
+        className="bg-white text-black rounded-xl shadow p-4 w-64
+            transition-all duration-300 ease-out
+            hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-purple-400"
+      >
         <img
           src={image}
           alt={card.name}
