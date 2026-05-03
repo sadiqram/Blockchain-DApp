@@ -1,36 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { Contract } from "ethers";
+import { Contract, ethers } from "ethers";
 
-type UseMarketplaceProps = {
+type Props = {
   contract: Contract | null;
 };
 
-export function useMarketplace({ contract }: UseMarketplaceProps) {
+export function useMarketplace({ contract }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // -------------------------
   // LIST CARD
   // -------------------------
-  const listCard = async (id: number, price: string | number) => {
-    if (!contract) {
-      setError("Contract not loaded");
-      return;
-    }
+  const listCard = async (id: number, price: string) => {
+    if (!contract) return;
 
     try {
       setLoading(true);
-      setError(null);
 
-      const tx = await contract.listCard(id, price);
-      await tx.wait(); // IMPORTANT: wait for confirmation
+      const tx = await contract.listCard(
+        id,
+        ethers.parseUnits(price.toString(), 18),
+      );
 
-      return tx;
+      await tx.wait();
     } catch (err: any) {
-      console.error("listCard error:", err);
-      setError(err?.message || "Failed to list card");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -40,54 +37,118 @@ export function useMarketplace({ contract }: UseMarketplaceProps) {
   // BUY CARD
   // -------------------------
   const buyCard = async (id: number) => {
-    if (!contract) {
-      setError("Contract not loaded");
-      return;
-    }
+    if (!contract) return;
 
     try {
       setLoading(true);
-      setError(null);
 
-      const tx = await contract.buyCard(id);
-      await tx.wait(); // wait for blockchain confirmation
+      const listing = await contract.getListing(id);
 
-      return tx;
+      const tx = await contract.buyCard(id, {
+        value: listing.price,
+      });
+
+      await tx.wait();
     } catch (err: any) {
-      console.error("buyCard error:", err);
-      setError(err?.message || "Failed to buy card");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-     const refreshListings = async () => {
-       if (!contract) return [];
 
-       const total = await contract.totalSupply();
-       const results = [];
+  // -------------------------
+  // START AUCTION
+  // -------------------------
+  const startAuction = async (
+    id: number,
+    price: string,
+    durationSeconds: number,
+  ) => {
+    if (!contract) return;
 
-       for (let i = 0; i < total; i++) {
-         try {
-           const listing = await contract.getListing(i);
+    try {
+      setLoading(true);
 
-           if (listing.price.toString() !== "0") {
-             results.push({
-               id: i,
-               price: listing.price.toString(),
-               seller: listing.seller,
-             });
-           }
-         } catch {}
-       }
+      const tx = await contract.startAuction(
+        id,
+        ethers.parseUnits(price.toString(), 18),
+        durationSeconds,
+      );
 
-       return results;
-     };
+      await tx.wait();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------
+  // PLACE BID
+  // -------------------------
+  const placeBid = async (id: number, amount: string) => {
+    if (!contract) return;
+
+    try {
+      setLoading(true);
+
+      const tx = await contract.placeBid(
+        id,
+        ethers.parseUnits(amount.toString(), 18),
+      );
+
+      await tx.wait();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------
+  // END AUCTION
+  // -------------------------
+  const endAuction = async (id: number) => {
+    if (!contract) return;
+
+    try {
+      setLoading(true);
+
+      const tx = await contract.endAuction(id);
+      await tx.wait();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------
+  // CLAIM NFT
+  // -------------------------
+  const claimNFT = async (id: number) => {
+    if (!contract) return;
+
+    try {
+      setLoading(true);
+
+      const tx = await contract.claimNFT(id);
+      await tx.wait();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     listCard,
     buyCard,
-      loading,
-    refreshListings,
+    startAuction,
+    placeBid,
+    endAuction,
+    claimNFT,
+    loading,
     error,
   };
 }

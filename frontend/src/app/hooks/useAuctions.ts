@@ -1,92 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Contract } from "ethers";
 
-type UseAuctionProps = {
+export type AuctionType = {
+  tokenId: number;
+  startingPrice: string;
+  currentPrice: string;
+  endTime: number;
+  highestBidder: string;
+  seller: string;
+  active: boolean;
+
+  //  ADD CARD DATA
+  name: string;
+  attack: string;
+  defense: string;
+  hp: string;
+  owner: string;
+};
+
+type Props = {
   contract: Contract | null;
 };
 
-export function useAuction({ contract }: UseAuctionProps) {
+export function useAuctions({ contract }: Props) {
+  const [auctions, setAuctions] = useState<AuctionType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // -------------------------
-  // PLACE BID
-  // -------------------------
-  const placeBid = async (tokenId: number, amount: string) => {
-    if (!contract) {
-      setError("Contract not loaded");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const tx = await contract.placeBid(tokenId, amount);
-      await tx.wait();
-
-      return tx;
-    } catch (err: any) {
-      console.error("placeBid error:", err);
-      setError(err?.message || "Failed to place bid");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // -------------------------
-  // START AUCTION
-  // -------------------------
-  const startAuction = async (
-    tokenId: number,
-    startingPrice: string,
-    duration: number,
-  ) => {
+  const load = async () => {
     if (!contract) return;
 
     try {
       setLoading(true);
 
-      const tx = await contract.startAuction(tokenId, startingPrice, duration);
-      await tx.wait();
+      const ids: number[] = await contract.getActiveAuctions();
+      const results: AuctionType[] = [];
 
-      return tx;
-    } catch (err: any) {
-      console.error("startAuction error:", err);
-      setError(err?.message || "Failed to start auction");
+      for (let id of ids) {
+        const a = await contract.auctions(id);
+        const card = await contract.cards(id);
+        const owner = await contract.ownerOf(id);
+
+        results.push({
+          tokenId: id,
+          startingPrice: a.startingPrice.toString(),
+          currentPrice: a.currentPrice.toString(),
+          endTime: Number(a.endTime),
+          highestBidder: a.highestBidder,
+          seller: a.seller,
+          active: a.active,
+
+          //  attach card info
+          name: card.name,
+          attack: card.attack.toString(),
+          defense: card.defense.toString(),
+          hp: card.hp.toString(),
+          owner,
+        });
+      }
+
+      setAuctions(results);
     } finally {
       setLoading(false);
     }
   };
 
-  // -------------------------
-  // END AUCTION
-  // -------------------------
-  const endAuction = async (tokenId: number) => {
-    if (!contract) return;
+  useEffect(() => {
+    load();
+  }, [contract]);
 
-    try {
-      setLoading(true);
-
-      const tx = await contract.endAuction(tokenId);
-      await tx.wait();
-
-      return tx;
-    } catch (err: any) {
-      console.error("endAuction error:", err);
-      setError(err?.message || "Failed to end auction");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return {
-    placeBid,
-    startAuction,
-    endAuction,
-    loading,
-    error,
-  };
+  return { auctions, loading, reload: load };
 }
