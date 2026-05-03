@@ -1,66 +1,79 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Contract } from "ethers";
-import type { CardType } from "../types/card";
 
-type UseCardsProps = {
+export type CardType = {
+  id: number;
+  name: string;
+  attack: string;
+  defense: string;
+  hp: string;
+  rarity: number;
+  shiny: boolean;
+  owner: string;
+  isListed: boolean;
+  price?: string;
+  seller?: string;
+};
+
+type Props = {
   contract: Contract | null;
 };
 
-export function useCards({ contract }: UseCardsProps) {
+export function useCards({ contract }: Props) {
   const [cards, setCards] = useState<CardType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadCards = async () => {
-      if (!contract) return;
+  const loadCards = useCallback(async () => {
+    if (!contract) return;
 
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setLoading(true);
 
-        const total: number = Number(await contract.totalSupply());
+      const total = Number(await contract.totalSupply());
+      const results: CardType[] = [];
 
-        // build all token calls in parallel (IMPORTANT FIX)
-        const requests = Array.from({ length: total }, (_, i) => i);
+      for (let i = 0; i < total; i++) {
+        try {
+          const card = await contract.cards(i);
+          const owner = await contract.ownerOf(i);
+          const listing = await contract.getListing(i);
 
-        const results = await Promise.all(
-          requests.map(async (i) => {
-            try {
-              const owner = await contract.ownerOf(i);
-              const card = await contract.cards(i);
+          const price = listing.price.toString();
 
-              return {
-                id: i,
-                name: card.name,
-                attack: card.attack.toString(),
-                defense: card.defense.toString(),
-                hp: card.hp.toString(),
-                rarity: Number(card.rarity),
-                shiny: card.Shiny,
-                owner,
-              } as CardType;
-            } catch {
-              return null; // skip invalid/missing tokens safely
-            }
-          }),
-        );
+          results.push({
+            id: i,
+            name: card.name,
+            attack: card.attack.toString(),
+            defense: card.defense.toString(),
+            hp: card.hp.toString(),
+            rarity: Number(card.rarity),
+            shiny: card.Shiny,
+            owner,
 
-        const cleaned = results.filter((c): c is CardType => c !== null);
-
-        setCards(cleaned);
-      } catch (err: any) {
-        console.error("useCards error:", err);
-        setError(err?.message || "Failed to load cards");
-      } finally {
-        setLoading(false);
+            isListed: price !== "0",
+            price: price !== "0" ? price : undefined,
+            seller: listing.seller,
+          });
+        } catch {
+          continue;
+        }
       }
-    };
 
-    loadCards();
+      setCards(results);
+    } finally {
+      setLoading(false);
+    }
   }, [contract]);
 
-  return { cards, loading, error };
+  useEffect(() => {
+    loadCards();
+  }, [loadCards]);
+
+  return {
+    cards,
+    loading,
+    reload: loadCards,
+  };
 }

@@ -1,74 +1,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ethers } from "ethers";
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../contract";
+import { Contract } from "ethers";
+import { getReadOnlyContract, getWriteContract } from "../contract";
 
-type Contract = ethers.Contract | null;
+export function useContract() {
+  const [readContract, setReadContract] = useState<Contract | null>(null);
+  const [writeContract, setWriteContract] = useState<Contract | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export function useContract(account: string | null) {
-  const [readContract, setReadContract] = useState<Contract>(null);
-  const [writeContract, setWriteContract] = useState<Contract>(null);
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-
-  // -------------------------
-  // INIT PROVIDER + READ CONTRACT
-  // -------------------------
   useEffect(() => {
-    const init = async () => {
-      // Read-only provider (RPC)
-      const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "http://127.0.0.1:8545";
-
-      const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
-
-      const read = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        rpcProvider,
-      );
-
-      setReadContract(read);
-    };
-
-    init();
-  }, []);
-
-  // -------------------------
-  // INIT SIGNER + WRITE CONTRACT
-  // -------------------------
-  useEffect(() => {
-    const initWrite = async () => {
-      if (!window.ethereum || !account) {
-        setWriteContract(null);
-        setProvider(null);
-        return;
-      }
-
-      const browserProvider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(browserProvider);
-
+    const loadContracts = async () => {
       try {
-        const signer = await browserProvider.getSigner();
+        setLoading(true);
+        setError(null);
 
-        const write = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          CONTRACT_ABI,
-          signer,
-        );
+        // READ contract (always works)
+        const read = await getReadOnlyContract();
+        setReadContract(read);
 
-        setWriteContract(write);
-      } catch (err) {
-        console.log("No signer available yet:", err);
-        setWriteContract(null);
+        // WRITE contract (only works if wallet connected)
+        try {
+          const write = await getWriteContract();
+          setWriteContract(write);
+        } catch (err) {
+          console.log("Wallet not connected (write disabled)");
+          setWriteContract(null);
+        }
+      } catch (err: any) {
+        console.error("useContract error:", err);
+        setError(err?.message || "Failed to load contracts");
+      } finally {
+        setLoading(false);
       }
     };
 
-    initWrite();
-  }, [account]);
+    loadContracts();
+  }, []);
 
   return {
     readContract,
     writeContract,
-    provider,
+    loading,
+    error,
   };
 }
