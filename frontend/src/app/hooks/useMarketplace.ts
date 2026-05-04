@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Contract, ethers } from "ethers";
+import YodaABI from "../contracts/YODA.json";
 
 type Props = {
   contract: Contract | null;
@@ -12,6 +13,36 @@ export function useMarketplace({ contract }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   // -------------------------
+  // GET YODA CONTRACT
+  // -------------------------
+  const getYodaContract = async () => {
+    if (!window.ethereum) throw new Error("MetaMask not found");
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    return new ethers.Contract(
+      process.env.NEXT_PUBLIC_YODA_TOKEN_ADDRESS!,
+      YodaABI.abi, // ✅ IMPORTANT FIX (.abi)
+      signer,
+    );
+  };
+
+  // -------------------------
+  // APPROVE YODA
+  // -------------------------
+  const approveYoda = async (amount: bigint) => {
+    const yoda = await getYodaContract();
+
+    const tx = await yoda.approve(
+      process.env.NEXT_PUBLIC_POKEMON_CONTRACT_ADDRESS,
+      amount,
+    );
+
+    await tx.wait();
+  };
+
+  // -------------------------
   // LIST CARD
   // -------------------------
   const listCard = async (id: number, price: string) => {
@@ -20,10 +51,7 @@ export function useMarketplace({ contract }: Props) {
     try {
       setLoading(true);
 
-      const tx = await contract.listCard(
-        id,
-        ethers.parseUnits(price.toString(), 18),
-      );
+      const tx = await contract.listCard(id, ethers.parseUnits(price, 18));
 
       await tx.wait();
     } catch (err: any) {
@@ -34,7 +62,7 @@ export function useMarketplace({ contract }: Props) {
   };
 
   // -------------------------
-  // BUY CARD
+  // BUY CARD (YODA VERSION)
   // -------------------------
   const buyCard = async (id: number) => {
     if (!contract) return;
@@ -43,13 +71,17 @@ export function useMarketplace({ contract }: Props) {
       setLoading(true);
 
       const listing = await contract.getListing(id);
+      const price = listing.price;
 
-      const tx = await contract.buyCard(id, {
-        value: listing.price,
-      });
+      // ✅ Step 1: approve YODA
+      await approveYoda(price);
+
+      // ✅ Step 2: call buy (NO ETH)
+      const tx = await contract.buyCard(id);
 
       await tx.wait();
     } catch (err: any) {
+      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -71,7 +103,7 @@ export function useMarketplace({ contract }: Props) {
 
       const tx = await contract.startAuction(
         id,
-        ethers.parseUnits(price.toString(), 18),
+        ethers.parseUnits(price, 18),
         durationSeconds,
       );
 
@@ -84,7 +116,7 @@ export function useMarketplace({ contract }: Props) {
   };
 
   // -------------------------
-  // PLACE BID
+  // PLACE BID (YODA VERSION)
   // -------------------------
   const placeBid = async (id: number, amount: string) => {
     if (!contract) return;
@@ -92,13 +124,17 @@ export function useMarketplace({ contract }: Props) {
     try {
       setLoading(true);
 
-      const tx = await contract.placeBid(
-        id,
-        ethers.parseUnits(amount.toString(), 18),
-      );
+      const parsed = ethers.parseUnits(amount, 18);
+
+      // ✅ approve tokens first
+      await approveYoda(parsed);
+
+      // ✅ place bid
+      const tx = await contract.placeBid(id, parsed);
 
       await tx.wait();
     } catch (err: any) {
+      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
