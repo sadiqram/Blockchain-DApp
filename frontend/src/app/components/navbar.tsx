@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         {/* Logo */}
         <div className="text-black font-bold text-lg tracking-wide">
-          Fantasy Pokemon NFT Cards
+          Fantasy Pokemon NFT
         </div>
 
         {/* Links */}
