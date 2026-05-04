@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { getFreeYoda, getYodaBalance } from "../utils/getYoda";
+import { useEffect, useState } from "react";
+import { useWallet } from "../hooks/useWallet";
+
 
 const links = [
   { href: "/", label: "Home" },
@@ -9,6 +13,23 @@ const links = [
 ];
 
 export default function Navbar() {
+    const handleGetYoda = async () => {
+      const res = await getFreeYoda();
+
+      if (res.success) {
+        alert("YODA claimed!");
+      } else {
+        alert(res.error);
+      }
+    };
+  const [balance, setBalance] = useState("0");
+  const { account } = useWallet();
+
+  useEffect(() => {
+    if (!account) return;
+
+    getYodaBalance(account).then(setBalance);
+  }, [account]);
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
@@ -33,6 +54,13 @@ export default function Navbar() {
           ))}
         </div>
       </div>
+      <button
+        onClick={handleGetYoda}
+        className="border px-3 py-1 rounded hover:bg-gray-200 transition"
+      >
+        Get YODA
+      </button>
+      <p className="text-sm">{balance} YODA</p>
     </nav>
   );
 }
