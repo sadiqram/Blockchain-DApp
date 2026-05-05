@@ -5,30 +5,22 @@ async function main() {
 
   console.log("Deploying with:", deployer.address);
 
-  // ------------------------
-  // Deploy YODA
-  // ------------------------
-  const ERC20Token = await hre.ethers.getContractFactory("ERC20Token");
-
-  const yoda = await ERC20Token.deploy(1000000, 18);
+  // 1. Deploy YODA token
+  const ERC20 = await hre.ethers.getContractFactory("ERC20Token");
+  const yoda = await ERC20.deploy(1000000, 18);
   await yoda.waitForDeployment();
 
-  const yodaAddress = await yoda.getAddress();
+  console.log("YODA deployed:", await yoda.getAddress());
 
-  console.log("YODA deployed to:", yodaAddress);
-
-  // ------------------------
-  // Deploy Game Contract
-  // ------------------------
-  const PokemonFTCG = await hre.ethers.getContractFactory("PokemonFTCG");
-
-  const pokemon = await PokemonFTCG.deploy(yodaAddress);
+  // 2. Deploy Pokemon contract
+  const Pokemon = await hre.ethers.getContractFactory("PokemonFTCG");
+  const pokemon = await Pokemon.deploy(await yoda.getAddress());
   await pokemon.waitForDeployment();
 
-  console.log("PokemonFTCG deployed to:", await pokemon.getAddress());
+  console.log("PokemonFTCG deployed:", await pokemon.getAddress());
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
 });

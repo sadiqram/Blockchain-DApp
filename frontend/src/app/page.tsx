@@ -9,21 +9,6 @@ import { useEffect, useState } from "react";
 import { Contract } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./contract";
 
-// type CardType = {
-//   id: number;
-//   name: string;
-//   attack: string;
-//   defense: string;
-//   hp: string;
-//   rarity: number;
-//   shiny: boolean;
-//   owner: string;
-// };
-
-// type Props = {
-//   contract: ethers.Contract | null;
-//   account: string | null;
-// };
 export default function Home() {
   const {
     account,
@@ -34,6 +19,7 @@ export default function Home() {
   } = useWallet();
   const [readContract, setReadContract] = useState<Contract | null>(null);
   const [writeContract, setWriteContract] = useState<Contract | null>(null);
+  
   useEffect(() => {
     const loadContracts = async () => {
       if (!window.ethereum) return;
@@ -60,6 +46,18 @@ export default function Home() {
 
     loadContracts();
   }, [account]);
+  useEffect(() => {
+    const test = async () => {
+      const contract = await getReadOnlyContract();
+      console.log("TOTAL SUPPLY:", await contract.totalSupply());
+
+      // 🔥 NEW FUNCTION TEST
+      const data = await contract.getAllCards();
+      console.log("ALL CARDS:", data);
+    };
+
+    test();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">

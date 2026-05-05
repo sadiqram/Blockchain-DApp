@@ -28,43 +28,46 @@ export function useAuctions({ contract }: Props) {
   const [auctions, setAuctions] = useState<AuctionType[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const load = async () => {
-    if (!contract) return;
+const load = async () => {
+  if (!contract) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const ids: number[] = await contract.getActiveAuctions();
-      const results: AuctionType[] = [];
+    const ids: number[] = await contract.getActiveAuctions();
 
-      for (let id of ids) {
-        const a = await contract.auctions(id);
-        const card = await contract.cards(id);
-        const owner = await contract.ownerOf(id);
+    const limited = ids.slice(0, 20); // 🚨 LIMIT
 
-        results.push({
-          tokenId: id,
-          startingPrice: a.startingPrice.toString(),
-          currentPrice: a.currentPrice.toString(),
-          endTime: Number(a.endTime),
-          highestBidder: a.highestBidder,
-          seller: a.seller,
-          active: a.active,
+    const promises = limited.map(async (id) => {
+      const [a, card, owner] = await Promise.all([
+        contract.auctions(id),
+        contract.cards(id),
+        contract.ownerOf(id),
+      ]);
 
-          //  attach card info
-          name: card.name,
-          attack: card.attack.toString(),
-          defense: card.defense.toString(),
-          hp: card.hp.toString(),
-          owner,
-        });
-      }
+      return {
+        tokenId: id,
+        startingPrice: a.startingPrice.toString(),
+        currentPrice: a.currentPrice.toString(),
+        endTime: Number(a.endTime),
+        highestBidder: a.highestBidder,
+        seller: a.seller,
+        active: a.active,
+        name: card.name,
+        attack: card.attack.toString(),
+        defense: card.defense.toString(),
+        hp: card.hp.toString(),
+        owner,
+      };
+    });
 
-      setAuctions(results);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const results = await Promise.all(promises);
+
+    setAuctions(results);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     load();

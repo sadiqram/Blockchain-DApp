@@ -11,33 +11,49 @@ export function useContract() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadContracts = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // READ contract (always works)
+        // -------------------------
+        // READ CONTRACT (RPC)
+        // -------------------------
         const read = await getReadOnlyContract();
+
+        if (!mounted) return;
         setReadContract(read);
 
-        // WRITE contract (only works if wallet connected)
+        // -------------------------
+        // WRITE CONTRACT (MetaMask)
+        // -------------------------
         try {
           const write = await getWriteContract();
+
+          if (!mounted) return;
           setWriteContract(write);
-        } catch (err) {
+        } catch {
           console.log("Wallet not connected (write disabled)");
-          setWriteContract(null);
+          if (mounted) setWriteContract(null);
         }
       } catch (err: any) {
         console.error("useContract error:", err);
-        setError(err?.message || "Failed to load contracts");
+        if (mounted) {
+          setError(err?.message || "Failed to load contracts");
+        }
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     loadContracts();
-  }, []);
+
+    return () => {
+      mounted = false;
+    };
+  }, []); //  only runs once
 
   return {
     readContract,

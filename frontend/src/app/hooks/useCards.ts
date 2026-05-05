@@ -25,47 +25,43 @@ export function useCards({ contract }: Props) {
   const [cards, setCards] = useState<CardType[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadCards = useCallback(async () => {
-    if (!contract) return;
+ const loadCards = useCallback(async () => {
+   if (!contract) return;
 
-    try {
-      setLoading(true);
+   try {
+     setLoading(true);
 
-      const total = Number(await contract.totalSupply());
-      const results: CardType[] = [];
+     // ONE SINGLE RPC CALL (instead of looping)
+     const [cards, owners, listings] = await contract.getAllCards();
 
-      for (let i = 0; i < total; i++) {
-        try {
-          const card = await contract.cards(i);
-          const owner = await contract.ownerOf(i);
-          const listing = await contract.getListing(i);
+     const results = cards.map((card: any, i: number) => {
+       const listing = listings[i];
 
-          const price = listing.price.toString();
+       return {
+         id: i,
+         name: card.name,
+         attack: card.attack.toString(),
+         defense: card.defense.toString(),
+         hp: card.hp.toString(),
+         rarity: Number(card.rarity),
+         shiny: card.Shiny,
+         owner: owners[i],
+         isListed: listing.price.toString() !== "0",
+         price:
+           listing.price.toString() !== "0"
+             ? listing.price.toString()
+             : undefined,
+         seller: listing.seller,
+       };
+     });
 
-          results.push({
-            id: i,
-            name: card.name,
-            attack: card.attack.toString(),
-            defense: card.defense.toString(),
-            hp: card.hp.toString(),
-            rarity: Number(card.rarity),
-            shiny: card.Shiny,
-            owner,
-
-            isListed: price !== "0",
-            price: price !== "0" ? price : undefined,
-            seller: listing.seller,
-          });
-        } catch {
-          continue;
-        }
-      }
-
-      setCards(results);
-    } finally {
-      setLoading(false);
-    }
-  }, [contract]);
+     setCards(results);
+   } catch (err) {
+     console.error("getAllCards failed:", err);
+   } finally {
+     setLoading(false);
+   }
+ }, [contract]);
 
   useEffect(() => {
     loadCards();

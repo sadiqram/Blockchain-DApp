@@ -7,10 +7,11 @@ import { formatYoda } from "../utils/formatYoda";
 type Props = {
   card: CardType;
   children?: React.ReactNode;
-  onBuy?: (id: number) => void;
+  onBuy?: (id: number) => Promise<void> | void;
   onList?: (id: number, price: string) => void;
   onAuction?: (id: number, price: string, duration: number) => void;
   account?: string | null;
+  disabled?: boolean;
 };
 
 const pokemonImageMap: Record<string, string> = {
@@ -27,43 +28,70 @@ export default function Card({
   onBuy,
   onAuction,
   account,
+  disabled,
 }: Props) {
   const [listPrice, setListPrice] = useState("");
   const [auctionPrice, setAuctionPrice] = useState("");
   const [duration, setDuration] = useState("60");
 
+  // Local lock to prevent spam clicks
+  const [isBuying, setIsBuying] = useState(false);
+
+  // -------------------------
+  // OWNERSHIP CHECKS
+  // -------------------------
   const isOwner =
     !!account &&
     !!card.owner &&
     card.owner.toLowerCase() === account.toLowerCase();
 
+  const isSeller =
+    !!account &&
+    !!card.seller &&
+    card.seller.toLowerCase() === account.toLowerCase();
+
+  const cannotBuy = isOwner || isSeller;
+
   const image = pokemonImageMap[card.name] || "/placeholder.png";
 
+  // -------------------------
+  // BUY HANDLER
+  // -------------------------
+  const handleBuy = async () => {
+    if (!onBuy || cannotBuy || disabled || isBuying) return;
+
+    try {
+      setIsBuying(true);
+      await onBuy(card.id);
+    } catch (err) {
+      console.error("Buy failed:", err);
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
+  // -------------------------
+  // UI
+  // -------------------------
   return (
-    <div className="bg-white text-black rounded-xl shadow p-4 w-64">
+    <div className="bg-white text-black rounded-xl shadow p-4 w-64 transition-all duration-300 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-purple-400">
       {/* IMAGE */}
+      <img
+        src={image}
+        alt={card.name}
+        className="h-40 w-full object-contain drop-shadow-md"
+      />
 
-      <div
-        className="bg-white text-black rounded-xl shadow p-4 w-64
-            transition-all duration-300 ease-out
-            hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-purple-400"
-      >
-        <img
-          src={image}
-          alt={card.name}
-          className="h-full w-auto object-contain drop-shadow-md"
-        />
-      </div>
+      {/* NAME */}
+      <h2 className="font-bold text-lg mt-2">{card.name}</h2>
 
-      <h2 className="font-bold text-lg">{card.name}</h2>
-
+      {/* STATS */}
       <p>HP: {card.hp}</p>
       <p>ATK: {card.attack}</p>
       <p>DEF: {card.defense}</p>
 
-      <p className="mt-2 text-sm">
-        Owner: {card.owner?.slice(0, 6) ?? "unknown"}...
-      </p>
+      {/* OWNER */}
+      <p className="mt-2 text-sm">Owner: {card.owner?.slice(0, 6)}...</p>
 
       {/* LIST STATUS */}
       {card.isListed ? (
@@ -74,21 +102,40 @@ export default function Card({
         <p className="text-gray-500">Not Listed</p>
       )}
 
-      {/* BUY */}
-      {onBuy && card.isListed && !isOwner && (
+      {/* -------------------------
+          BUY SECTION (FIXED)
+         ------------------------- */}
+
+      {/* ONLY show button if user CAN buy */}
+      {onBuy && card.isListed && !cannotBuy && (
         <button
-          onClick={() => onBuy(card.id)}
-          className="mt-2 w-full bg-green-600 text-white py-1 rounded"
+          onClick={handleBuy}
+          disabled={disabled || isBuying}
+          className={`mt-2 w-full px-4 py-2 rounded-lg font-medium transition
+            ${
+              disabled || isBuying
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
         >
-          Buy
+          {disabled || isBuying ? "Processing..." : "Buy"}
         </button>
       )}
 
-      {/* LIST (only if not listed) */}
+      {/* SHOW MESSAGE INSTEAD */}
+      {card.isListed && cannotBuy && (
+        <p className="mt-2 text-sm text-center text-gray-500">
+          You own this card
+        </p>
+      )}
+
+      {/* -------------------------
+          LIST
+         ------------------------- */}
       {isOwner && onList && !card.isListed && (
         <div className="mt-2">
           <input
-            className="border p-1 w-full text-sm"
+            className="border p-1 w-full text-sm text-black"
             placeholder="Price in YODA"
             value={listPrice}
             onChange={(e) => setListPrice(e.target.value)}
@@ -103,19 +150,21 @@ export default function Card({
         </div>
       )}
 
-      {/* AUCTION (only if not listed) */}
+      {/* -------------------------
+          AUCTION
+         ------------------------- */}
       {isOwner && onAuction && !card.isListed && (
         <div className="mt-2">
           <input
             className="border p-1 w-full text-sm"
-            placeholder="Starting price in YODA"
+            placeholder="Starting price"
             value={auctionPrice}
             onChange={(e) => setAuctionPrice(e.target.value)}
           />
 
           <input
             className="border p-1 w-full text-sm mt-2"
-            placeholder="Duration (seconds)"
+            placeholder="Duration (sec)"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
           />
@@ -129,7 +178,7 @@ export default function Card({
         </div>
       )}
 
-      {/* EXTENSION SLOT (USED BY AUCTIONS) */}
+      {/* EXTENSION SLOT */}
       {children}
     </div>
   );

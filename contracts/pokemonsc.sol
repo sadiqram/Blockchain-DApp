@@ -108,6 +108,7 @@ contract PokemonFTCG {
 
     // Probably only admin or owner should mint cards
     function _mintCard(address to, uint256 cardId) internal {
+        // cpmment for now to test deployment
         require(to != address(0), "Invalid address/ mint to zero address");
         require(_ownerOf[cardId] == address(0), "Card already minted");
         _balanceOf[to]++;
@@ -124,6 +125,7 @@ contract PokemonFTCG {
         uint8 rarity,
         bool shiny
     ) public {
+        // uncomment after deployment test
         require(msg.sender == contractOwner, "Not contract owner");
 
         uint256 cardId = _nextTokenId++;
@@ -218,7 +220,8 @@ contract PokemonFTCG {
     }
     function placeBid(uint256 tokenId, uint256 amount) public {
         Auction storage auction = auctions[tokenId];
-
+        require(msg.sender != auction.seller, "Seller cannot bid");
+        require(msg.sender != auction.highestBidder, "Already highest bidder");
         require(auction.active, "Auction not active");
         require(block.timestamp < auction.endTime, "Auction ended");
         require(amount > auction.currentPrice, "Bid too low");
@@ -312,6 +315,25 @@ contract PokemonFTCG {
         }
 
         auction.refunded = true;
+    }
+    function getAllCards()
+        public
+        view
+        returns (Card[] memory, address[] memory, Listing[] memory)
+    {
+        uint256 total = _nextTokenId;
+
+        Card[] memory _cards = new Card[](total);
+        address[] memory owners = new address[](total);
+        Listing[] memory allListings = new Listing[](total);
+
+        for (uint256 i = 0; i < total; i++) {
+            _cards[i] = cards[i];
+            owners[i] = _ownerOf[i];
+            allListings[i] = listings[i];
+        }
+
+        return (_cards, owners, allListings);
     }
 
     function totalSupply() public view returns (uint256) {

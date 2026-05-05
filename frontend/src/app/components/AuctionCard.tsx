@@ -29,12 +29,20 @@ export default function AuctionCard({
 
   const isEnded = timeLeft === "Ended";
 
+  // -------------------------
+  // ROLE CHECKS
+  // -------------------------
   const isSeller =
-    account && auction.seller?.toLowerCase() === account.toLowerCase();
+    !!account && auction.seller?.toLowerCase() === account.toLowerCase();
 
   const isWinner =
-    account && auction.highestBidder?.toLowerCase() === account.toLowerCase();
+    !!account && auction.highestBidder?.toLowerCase() === account.toLowerCase();
 
+  const cannotBid = isSeller || isWinner || isEnded;
+
+  // -------------------------
+  // TIMER
+  // -------------------------
   useEffect(() => {
     const timer = setInterval(() => {
       const now = Math.floor(Date.now() / 1000);
@@ -54,6 +62,9 @@ export default function AuctionCard({
     return () => clearInterval(timer);
   }, [auction.endTime]);
 
+  // -------------------------
+  // BID HANDLER
+  // -------------------------
   const handleBidClick = () => {
     const bidValue = Number(bid);
 
@@ -62,9 +73,16 @@ export default function AuctionCard({
       return;
     }
 
+    if (cannotBid) {
+      return;
+    }
+
     onBid(card.tokenId, bid);
   };
 
+  // -------------------------
+  // UI
+  // -------------------------
   return (
     <Card card={card}>
       <p className="text-sm">Current: {currentPrice} YODA</p>
@@ -75,21 +93,32 @@ export default function AuctionCard({
 
       <p className="text-xs text-red-500">⏳ {timeLeft}</p>
 
-      {/* BID */}
+      {/* BID SECTION */}
       {!isEnded && (
         <>
           <input
             value={bid}
             onChange={(e) => setBid(e.target.value)}
             placeholder="Bid amount"
-            className="border p-1 text-black mt-2 w-full"
+            disabled={cannotBid}
+            className="border p-1 text-black mt-2 w-full disabled:bg-gray-200"
           />
 
           <button
             onClick={handleBidClick}
-            className="bg-purple-600 text-white w-full py-1 mt-2 rounded"
+            disabled={cannotBid}
+            className={`w-full py-1 mt-2 rounded text-white transition
+              ${
+                cannotBid
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-purple-600 hover:bg-purple-700"
+              }`}
           >
-            Place Bid
+            {isSeller
+              ? "You are seller"
+              : isWinner
+              ? "You are highest bidder"
+              : "Place Bid"}
           </button>
         </>
       )}
@@ -98,7 +127,7 @@ export default function AuctionCard({
       {isEnded && isSeller && (
         <button
           onClick={() => onEnd(card.tokenId)}
-          className="bg-red-600 text-white w-full py-1 mt-2 rounded"
+          className="bg-red-600 hover:bg-red-700 text-white w-full py-1 mt-2 rounded"
         >
           End Auction
         </button>
@@ -108,7 +137,7 @@ export default function AuctionCard({
       {isEnded && isWinner && (
         <button
           onClick={() => onClaim(card.tokenId)}
-          className="bg-green-600 text-white w-full py-1 mt-2 rounded"
+          className="bg-green-600 hover:bg-green-700 text-white w-full py-1 mt-2 rounded"
         >
           Claim NFT
         </button>
