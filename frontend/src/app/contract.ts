@@ -1,12 +1,8 @@
 import { ethers } from "ethers";
 import abi from "./contracts/PokemonFTCG.json" assert { type: "json" };
 
-
 export const CONTRACT_ABI = abi.abi;
-
-export const CONTRACT_ADDRESS =
-  process.env.NEXT_PUBLIC_POKEMON_CONTRACT_ADDRESS;
-
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_POKEMON_CONTRACT_ADDRESS;
 export const YODA_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_YODA_TOKEN_ADDRESS;
 
 // -----------------------------

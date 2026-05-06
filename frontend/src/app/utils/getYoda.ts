@@ -1,8 +1,6 @@
 "use client";
-
 import { ethers } from "ethers";
 import YodaABI from "../contracts/YODA.json";
-
 
 const YODA_ADDRESS = process.env.NEXT_PUBLIC_YODA_TOKEN_ADDRESS!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
