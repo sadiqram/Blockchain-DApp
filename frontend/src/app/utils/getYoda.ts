@@ -1,12 +1,13 @@
 "use client";
 
 import { ethers } from "ethers";
-import YodaABI from "../contracts/YODA.json";
+import abi from "../../../../artifacts/contracts/Yoda.sol/ERC20Token.json" assert { type: "json" };
 
 const YODA_ADDRESS = process.env.NEXT_PUBLIC_YODA_TOKEN_ADDRESS!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
 
-// ✅ SINGLETON provider + contract (VERY IMPORTANT)
+// SINGLETON provider + contract (VERY IMPORTANT)
+const YodaABI = abi;
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const readContract = new ethers.Contract(YODA_ADDRESS, YodaABI.abi, provider);
 
@@ -50,7 +51,7 @@ let cachedBalance = "0";
 export async function getYodaBalance(account: string) {
   const now = Date.now();
 
-  // ✅ cache for 10 seconds
+  // cache for 10 seconds(attempt to fix rpc limiting)
   if (now - lastFetch < 10000) {
     return cachedBalance;
   }
