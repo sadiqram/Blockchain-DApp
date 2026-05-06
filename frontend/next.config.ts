@@ -5,9 +5,9 @@ import type { NextConfig } from "next";
 const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: appRoot,
-  },
+  // turbopack: {
+  //   root: appRoot,
+  // },
   images: {
     remotePatterns: [
       {
