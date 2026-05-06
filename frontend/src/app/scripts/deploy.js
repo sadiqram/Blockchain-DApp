@@ -7,7 +7,7 @@ async function main() {
 
   // 1. Deploy YODA token
   const ERC20 = await hre.ethers.getContractFactory("ERC20Token");
-  const yoda = await ERC20.deploy(1000000, 18);
+  const yoda = await ERC20.deploy(10000, 18);
   await yoda.waitForDeployment();
 
   console.log("YODA deployed:", await yoda.getAddress());

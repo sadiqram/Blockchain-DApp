@@ -9,7 +9,7 @@ import { useCallback } from "react";
 
 export default function MarketplacePage() {
   const {
-    account, // ✅ FIX: needed for ownership checks
+    account, 
   } = useWallet();
 
   const {

@@ -12,7 +12,7 @@ export function useMarketplace({ contract }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Create provider ONCE (not per call)
+  // Create provider ONCE (not per call)
   const provider = useMemo(() => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
       return null;
