@@ -42,6 +42,8 @@ export default function Mint() {
     }
   };
 
+  
+
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-100 to-gray-200 flex flex-col">
       {/* NAV */}
