@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import abi from "./contracts/PokemonFTCG.json" assert { type: "json" };
-// import abi from "../../../artifacts/contracts/pokemonsc.sol/PokemonFTCG.json" assert { type: "json" };
+
 
 export const CONTRACT_ABI = abi.abi;
 
