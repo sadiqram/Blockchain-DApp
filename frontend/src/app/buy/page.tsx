@@ -143,3 +143,6 @@
 //     </div>
 //   );
 // }
+export default function Bid() {
+  return <div>Bid Page</div>;
+}

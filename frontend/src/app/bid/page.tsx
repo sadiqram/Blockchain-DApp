@@ -193,3 +193,8 @@
 //     </div>
 //   );
 // }
+function Bid() {
+  return <div>Bid Page</div>;
+}
+
+export default Bid;
